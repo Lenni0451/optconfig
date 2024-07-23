@@ -1,9 +1,8 @@
 plugins {
-    id "java"
+    id "java-library"
     id "maven-publish"
     id "signing"
     id "checkstyle"
-    id "net.raphimc.class-token-replacer" version "1.1.2"
 }
 
 base {
@@ -24,39 +23,12 @@ configurations {
 
 repositories {
     mavenCentral()
-    maven {
-        name = "lenni0451"
-        url = "https://maven.lenni0451.net/everything"
-    }
-    maven {
-        name = "jitpack"
-        url = "https://jitpack.io"
-    }
-    maven {
-        name = "sonatype snapshots"
-        url "https://oss.sonatype.org/content/repositories/snapshots/"
-    }
-
-    //ivy { //include "waterfall:1.19:504@jar"
-    //    url "https://papermc.io/api/v2/projects"
-    //    patternLayout {
-    //        artifact "/[organisation]/versions/[module]/builds/[revision]/downloads/[organisation]-[module]-[revision].[ext]"
-    //    }
-    //    metadataSources {
-    //        artifact()
-    //    }
-    //}
 }
 
 dependencies {
-    if (new File(projectDir, "libs").exists()) { //Include all jars in the libs folder
-        include fileTree(include: ["*.jar"], dir: "libs")
-    }
-
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     compileOnly "org.jetbrains:annotations:24.1.0"
     compileOnly(annotationProcessor("org.projectlombok:lombok:1.18.34"))
-    //include "net.lenni0451:Reflect:1.0.0"
 
     testImplementation(platform("org.junit:junit-bom:5.10.3"))
     testImplementation "org.junit.jupiter:junit-jupiter"
@@ -64,31 +36,9 @@ dependencies {
     testCompileOnly(testAnnotationProcessor("org.projectlombok:lombok:1.18.34"))
 }
 
-sourceSets {
-    main {
-        classTokenReplacer {
-            //Replace all instances of '${version}' with the project version
-            property("\${version}", project.version)
-        }
-    }
-}
-
 java {
     withSourcesJar()
     withJavadocJar()
-}
-
-processResources {
-    //Config file: "version: ${version}"
-    inputs.properties(
-            "version": project.maven_version
-    )
-
-    filesMatching("config.yml") {
-        expand(
-                "version": project.maven_version
-        )
-    }
 }
 
 artifacts {
@@ -104,13 +54,6 @@ jar {
         }
     } {
         exclude "META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA"
-    }
-
-    manifest {
-        attributes(
-                "Main-Class": "net.lenni0451.gradletemplate.Main",
-                "Multi-Release": "true"
-        )
     }
 }
 
