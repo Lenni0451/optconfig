@@ -44,7 +44,6 @@ public class SectionIndex {
     }
 
     public void addSubSection(final ConfigOption option, final SectionIndex section) {
-        this.options.add(option);
         this.subSections.put(option, section);
     }
 
