@@ -1,6 +1,7 @@
 package net.lenni0451.optconfig.index;
 
 import net.lenni0451.optconfig.annotations.*;
+import net.lenni0451.optconfig.annotations.internal.Migrators;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
@@ -15,7 +16,10 @@ public class ClassIndexer {
         SectionIndex sectionIndex;
         if (clazz.getDeclaredAnnotation(OptConfig.class) != null) {
             OptConfig optConfig = clazz.getDeclaredAnnotation(OptConfig.class);
-            sectionIndex = new ConfigIndex(configType, clazz, optConfig.version());
+            Migrators migrators = clazz.getDeclaredAnnotation(Migrators.class);
+            ConfigIndex configIndex = new ConfigIndex(configType, clazz, optConfig.version());
+            for (Migrator migrator : migrators.value()) configIndex.addMigrator(migrator.from(), migrator.to(), migrator.migrator());
+            sectionIndex = configIndex;
         } else if (clazz.getDeclaredAnnotation(Section.class) != null) {
             sectionIndex = new SectionIndex(configType, clazz);
         } else {
@@ -29,6 +33,7 @@ public class ClassIndexer {
         Class<?> clazz = sectionIndex.getClazz();
         for (Field field : clazz.getDeclaredFields()) {
             if (!sectionIndex.getConfigType().matches(field)) continue;
+            field.setAccessible(true);
             Option option = field.getDeclaredAnnotation(Option.class);
             if (option == null) continue;
             Description description = field.getDeclaredAnnotation(Description.class);
