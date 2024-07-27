@@ -41,19 +41,27 @@ class ConfigSerializer {
 
         for (ConfigOption option : sectionIndex.getOptions()) {
             if (!values.containsKey(option.getName())) continue;
-            Object value = values.get(option.getName());
-            if (sectionIndex.getSubSections().containsKey(option)) {
-                Object optionValue = option.getField().get(instance);
-                if (optionValue == null) {
-                    //Config sections don't have to be instantiated by the user
-                    optionValue = ReflectionUtils.instantiate(option.getField().getType());
-                    option.getField().set(instance, optionValue);
+            try {
+                Object value = values.get(option.getName());
+                if (sectionIndex.getSubSections().containsKey(option)) {
+                    Object optionValue = option.getField().get(instance);
+                    if (optionValue == null) {
+                        //Config sections don't have to be instantiated by the user
+                        optionValue = ReflectionUtils.instantiate(option.getField().getType());
+                        option.getField().set(instance, optionValue);
+                    }
+                    deserializeSection(configLoader, sectionIndex.getSubSections().get(option), optionValue, (Map<String, Object>) value);
+                } else {
+                    IConfigTypeSerializer typeSerializer = configLoader.typeSerializers.get(option.getField().getType());
+                    if (typeSerializer == null) typeSerializer = configLoader.typeSerializers.get(null);
+                    option.getField().set(instance, typeSerializer.deserialize(value));
                 }
-                deserializeSection(configLoader, sectionIndex.getSubSections().get(option), optionValue, (Map<String, Object>) value);
-            } else {
-                IConfigTypeSerializer typeSerializer = configLoader.typeSerializers.get(option.getField().getType());
-                if (typeSerializer == null) typeSerializer = configLoader.typeSerializers.get(null);
-                option.getField().set(instance, typeSerializer.deserialize(value));
+            } catch (Throwable t) {
+                if (!configLoader.getConfigOptions().isResetInvalidOptions()) throw t;
+                //Add the invalid key to the diff
+                //Adding it in both lists will remove the invalid key and add it again with the default value
+                configDiff.getRemovedKeys().add(option.getName());
+                configDiff.getAddedKeys().add(option.getName());
             }
         }
         return configDiff;

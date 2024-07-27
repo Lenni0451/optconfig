@@ -28,6 +28,7 @@ import java.util.Map;
 public class ConfigLoader {
 
     final Yaml yaml;
+    private final ConfigOptions configOptions = new ConfigOptions();
     final Map<Class<?>, IConfigTypeSerializer> typeSerializers = new HashMap<>();
 
     public ConfigLoader() {
@@ -39,6 +40,10 @@ public class ConfigLoader {
         this.yaml = new Yaml(new SafeConstructor(loaderOptions), new Representer(dumperOptions), dumperOptions); //Use safe constructor to prevent code execution
 
         this.addTypeSerializer(null, new PassthroughTypeSerializer()); //The default type serializer if no other is found
+    }
+
+    public ConfigOptions getConfigOptions() {
+        return this.configOptions;
     }
 
     public <T> void addTypeSerializer(final Class<T> clazz, final IConfigTypeSerializer<T> typeSerializer) {
