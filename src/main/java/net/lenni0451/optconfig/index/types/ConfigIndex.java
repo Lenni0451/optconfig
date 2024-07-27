@@ -3,7 +3,6 @@ package net.lenni0451.optconfig.index.types;
 import lombok.ToString;
 import lombok.Value;
 import net.lenni0451.optconfig.index.ConfigType;
-import net.lenni0451.optconfig.migrate.DefaultMigrator;
 import net.lenni0451.optconfig.migrate.IConfigMigrator;
 import net.lenni0451.optconfig.migrate.MigratorChain;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
@@ -38,16 +37,16 @@ public class ConfigIndex extends SectionIndex {
         this.migrators.put(new MigratorIndex(from, to), migrator);
     }
 
-    public IConfigMigrator searchMigrator(final int from, final int to) {
+    public Migrator searchMigrator(final int from, final int to) {
         MigratorIndex index = new MigratorIndex(from, to);
-        if (this.migrators.containsKey(index)) return ReflectionUtils.instantiate(this.migrators.get(index));
+        if (this.migrators.containsKey(index)) return new Migrator(from, to, ReflectionUtils.instantiate(this.migrators.get(index)));
         //No matching migrator found, try to find the best fitting ones
         //The goal is getting from the current version to the target version
         //If multiple migrators are found, they must be applied in the correct order
         //A possible chain could be: 1 -> 2, 2 -> 4, 4 -> 5
         //The chain must start with the current version. The end version can be lower than the target version, but must not exceed it
 
-        List<IConfigMigrator> migratorChain = new ArrayList<>();
+        List<Migrator> migratorChain = new ArrayList<>();
         int[] currentVersion = {from};
         while (currentVersion[0] < to) {
             //Find the next migrator. The biggest version jump is the best fitting one
@@ -57,18 +56,16 @@ public class ConfigIndex extends SectionIndex {
                     .orElse(null);
             if (migrator == null) {
                 //No fitting migrator was found
-                //Add the default migrator for the remaining versions
-                migratorChain.add(new DefaultMigrator());
-                currentVersion[0] = to;
+                //Let the default migrator handle the rest
+                break;
             } else {
                 //The next migrator was found
                 //Add it to the chain and try to find the next one
-                migratorChain.add(ReflectionUtils.instantiate(migrator.getValue()));
+                migratorChain.add(new Migrator(currentVersion[0], migrator.getKey().to, ReflectionUtils.instantiate(migrator.getValue())));
                 currentVersion[0] = migrator.getKey().to;
             }
         }
-        if (migratorChain.size() == 1) return migratorChain.get(0);
-        else return new MigratorChain(migratorChain);
+        return new Migrator(from, currentVersion[0], new MigratorChain(migratorChain));
     }
 
 
@@ -77,6 +74,14 @@ public class ConfigIndex extends SectionIndex {
     public static class MigratorIndex {
         int from;
         int to;
+    }
+
+    @Value
+    @ApiStatus.Internal
+    public static class Migrator {
+        int from;
+        int to;
+        IConfigMigrator instance;
     }
 
 }
