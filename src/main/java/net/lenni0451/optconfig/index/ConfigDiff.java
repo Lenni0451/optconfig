@@ -19,7 +19,9 @@ public class ConfigDiff {
                 continue;
             }
             if (sectionIndex.getSubSections().containsKey(option)) {
-                Map<String, Object> subSectionValues = (Map<String, Object>) values.get(option.getName());
+                Object value = values.get(option.getName());
+                if (!(value instanceof Map)) continue; //If a subsection is not a map, let the deserializer deal with it
+                Map<String, Object> subSectionValues = (Map<String, Object>) value;
                 ConfigDiff subSectionDiff = ConfigDiff.diff(sectionIndex.getSubSections().get(option), subSectionValues);
                 if (!subSectionDiff.isEmpty()) configDiff.subSections.put(option.getName(), subSectionDiff);
             }
