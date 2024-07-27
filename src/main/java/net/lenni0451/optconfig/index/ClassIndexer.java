@@ -38,7 +38,7 @@ public class ClassIndexer {
             if (option == null) continue;
             Description description = field.getDeclaredAnnotation(Description.class);
             NotReloadable notReloadable = field.getDeclaredAnnotation(NotReloadable.class);
-            ConfigOption configOption = new ConfigOption(field, option.value(), new String[0]/*TODO*/, description == null ? new String[0] : description.value(), notReloadable == null);
+            ConfigOption configOption = new ConfigOption(field, option.value(), description == null ? new String[0] : description.value(), notReloadable == null);
             sectionIndex.addOption(configOption);
 
             Section section = field.getType().getDeclaredAnnotation(Section.class);
