@@ -5,6 +5,7 @@ import net.lenni0451.optconfig.serializer.IConfigTypeSerializer;
 
 import java.util.Locale;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class GenericEnumSerializer implements IConfigTypeSerializer<Enum> {
 
     @Override
