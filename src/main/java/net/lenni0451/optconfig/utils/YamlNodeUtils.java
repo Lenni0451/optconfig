@@ -26,7 +26,7 @@ public class YamlNodeUtils {
             //Move all unrelated comments from the previous element to the new element
             //The previous element should also get a blank line prepended
             NodeTuple previousTuple = mappingNode.getValue().get(0);
-            List<CommentLine> unrelatedComments = getUnrelatedComments(previousTuple.getKeyNode());
+            List<CommentLine> unrelatedComments = getUnrelatedComments(previousTuple.getKeyNode(), true);
             List<CommentLine> previousComments = makeCommentsMutable(previousTuple.getKeyNode());
             if (!unrelatedComments.isEmpty()) {
                 List<CommentLine> blockComments = makeCommentsMutable(tuple.getKeyNode());
@@ -46,9 +46,8 @@ public class YamlNodeUtils {
         mappingNode.getValue().set(index, newNodes);
 
         //Copy over all unrelated comments from the old node to the new node
-        List<CommentLine> unrelatedComments = getUnrelatedComments(oldNodes.getKeyNode());
+        List<CommentLine> unrelatedComments = getUnrelatedComments(oldNodes.getKeyNode(), true);
         if (!unrelatedComments.isEmpty()) {
-            removeLeadingBlankLines(newNodes.getKeyNode()); //The new node should only have one leading blank line, if any
             List<CommentLine> blockComments = makeCommentsMutable(newNodes.getKeyNode());
             blockComments.addAll(0, unrelatedComments);
         }
@@ -60,22 +59,22 @@ public class YamlNodeUtils {
         int index = mappingNode.getValue().indexOf(tuple);
         mappingNode.getValue().remove(tuple);
 
-        List<CommentLine> unrelatedComments = getUnrelatedComments(tuple.getKeyNode());
+        List<CommentLine> unrelatedComments = getUnrelatedComments(tuple.getKeyNode(), false);
         if ((index == 0 && !unrelatedComments.isEmpty()) || unrelatedComments.size() > 1) {
             //If the first element has unrelated comments, or another element has more than just a blank line, copy all comments to the next element
             List<CommentLine> comments;
             if (index < mappingNode.getValue().size()) {
-                comments = makeCommentsMutable(mappingNode.getValue().get(index).getKeyNode());
+                NodeTuple nextTuple = mappingNode.getValue().get(index);
+                comments = makeCommentsMutable(nextTuple.getKeyNode());
             } else {
                 comments = makeMutable(mappingNode.getEndComments());
                 mappingNode.setEndComments(comments);
-                unrelatedComments.remove(unrelatedComments.size() - 1); //Remove the last blank line at the end of the file
             }
             comments.addAll(0, unrelatedComments);
         }
     }
 
-    public static List<CommentLine> getUnrelatedComments(final Node node) {
+    public static List<CommentLine> getUnrelatedComments(final Node node, final boolean includeBlank) {
         //Try to find all unrelated comments
         //This is done by finding the last blank line before the node and taking all comments before that
         //This is only an assumption, but it should be better than not taking any comments
@@ -85,7 +84,7 @@ public class YamlNodeUtils {
             //Find the last blank line
             CommentLine comment = comments.get(i);
             if (comment.getCommentType().equals(CommentType.BLANK_LINE)) {
-                cut = i + 1; //Include the blank line
+                cut = i + (includeBlank ? 1 : 0); //Include the blank line if requested
                 break;
             }
         }
