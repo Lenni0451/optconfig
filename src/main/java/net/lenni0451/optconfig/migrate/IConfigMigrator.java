@@ -1,7 +1,9 @@
 package net.lenni0451.optconfig.migrate;
 
+import java.util.Map;
+
 public interface IConfigMigrator {
 
-    //TODO: Implement this interface
+    void migrate(final int currentVersion, final Map<String, Object> loadedValues);
 
 }
