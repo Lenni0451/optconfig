@@ -33,11 +33,13 @@ public class ConfigDiff {
 
     private final List<String> addedKeys;
     private final List<String> removedKeys;
+    private final List<String> invalidKeys; //Used by the deserializer if an option has an invalid value
     private final Map<String, ConfigDiff> subSections;
 
     private ConfigDiff() {
         this.addedKeys = new ArrayList<>();
         this.removedKeys = new ArrayList<>();
+        this.invalidKeys = new ArrayList<>();
         this.subSections = new HashMap<>();
     }
 
@@ -49,12 +51,16 @@ public class ConfigDiff {
         return this.removedKeys;
     }
 
+    public List<String> getInvalidKeys() {
+        return this.invalidKeys;
+    }
+
     public Map<String, ConfigDiff> getSubSections() {
         return this.subSections;
     }
 
     public boolean isEmpty() {
-        return this.addedKeys.isEmpty() && this.removedKeys.isEmpty() && this.subSections.isEmpty();
+        return this.addedKeys.isEmpty() && this.removedKeys.isEmpty() && invalidKeys.isEmpty() && this.subSections.isEmpty();
     }
 
 }

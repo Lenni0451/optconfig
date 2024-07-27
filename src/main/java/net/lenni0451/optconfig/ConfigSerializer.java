@@ -59,9 +59,8 @@ class ConfigSerializer {
             } catch (Throwable t) {
                 if (!configLoader.getConfigOptions().isResetInvalidOptions()) throw t;
                 //Add the invalid key to the diff
-                //Adding it in both lists will remove the invalid key and add it again with the default value
-                configDiff.getRemovedKeys().add(option.getName());
-                configDiff.getAddedKeys().add(option.getName());
+                //The merger will replace the invalid value with the default value
+                configDiff.getInvalidKeys().add(option.getName());
             }
         }
         return configDiff;

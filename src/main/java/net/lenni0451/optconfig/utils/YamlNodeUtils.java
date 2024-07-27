@@ -41,6 +41,17 @@ public class YamlNodeUtils {
         mappingNode.getValue().add(index, tuple);
     }
 
+    public static void replace(final MappingNode mappingNode, final NodeTuple oldNodes, final NodeTuple newNodes) {
+        int index = mappingNode.getValue().indexOf(oldNodes);
+        mappingNode.getValue().set(index, newNodes);
+
+        List<CommentLine> unrelatedComments = getUnrelatedComments(oldNodes.getKeyNode());
+        if (!unrelatedComments.isEmpty()) {
+            List<CommentLine> blockComments = makeCommentsMutable(newNodes.getKeyNode());
+            blockComments.addAll(0, unrelatedComments);
+        }
+    }
+
     public static void remove(final MappingNode mappingNode, final String key) {
         NodeTuple tuple = get(mappingNode, key);
         if (tuple == null) return;
@@ -74,7 +85,9 @@ public class YamlNodeUtils {
                 break;
             }
         }
-        return comments.subList(0, cut);
+        comments = comments.subList(0, cut);
+        if (comments.stream().allMatch(comment -> comment.getCommentType().equals(CommentType.BLANK_LINE))) return new ArrayList<>();
+        return comments;
     }
 
     public static void removeLeadingBlankLines(final Node node) {

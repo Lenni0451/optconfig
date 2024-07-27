@@ -19,21 +19,32 @@ class DiffMerger {
         //Load the config as Nodes and apply the differences to keep comments and formatting
         MappingNode serializedNode = ConfigSerializer.serializeSection(configLoader, sectionIndex, instance); //Used for copying over nodes
         MappingNode readNode = (MappingNode) configLoader.yaml.compose(new StringReader(fileContent));
-        doMerge(configDiff, readNode, serializedNode);
+        doMerge(configLoader.getConfigOptions(), configDiff, readNode, serializedNode);
         return readNode;
     }
 
-    private static void doMerge(final ConfigDiff configDiff, final MappingNode readNode, final MappingNode serializedNode) {
-        for (String removedKey : configDiff.getRemovedKeys()) YamlNodeUtils.remove(readNode, removedKey);
-        for (String addedKey : configDiff.getAddedKeys()) {
-            NodeTuple tuple = YamlNodeUtils.get(serializedNode, addedKey);
-            int index = serializedNode.getValue().indexOf(tuple);
-            YamlNodeUtils.insert(readNode, tuple, index);
+    private static void doMerge(final ConfigOptions configOptions, final ConfigDiff configDiff, final MappingNode readNode, final MappingNode serializedNode) {
+        if (configOptions.isRemoveUnknownOptions()) {
+            for (String removedKey : configDiff.getRemovedKeys()) {
+                YamlNodeUtils.remove(readNode, removedKey);
+            }
+        }
+        if (configOptions.isAddMissingOptions()) {
+            for (String addedKey : configDiff.getAddedKeys()) {
+                NodeTuple tuple = YamlNodeUtils.get(serializedNode, addedKey);
+                int index = serializedNode.getValue().indexOf(tuple);
+                YamlNodeUtils.insert(readNode, tuple, index);
+            }
+        }
+        for (String invalidKey : configDiff.getInvalidKeys()) {
+            NodeTuple invalid = YamlNodeUtils.get(readNode, invalidKey);
+            NodeTuple valid = YamlNodeUtils.get(serializedNode, invalidKey);
+            YamlNodeUtils.replace(readNode, invalid, valid);
         }
         for (Map.Entry<String, ConfigDiff> entry : configDiff.getSubSections().entrySet()) {
             MappingNode readSubNode = (MappingNode) YamlNodeUtils.get(readNode, entry.getKey()).getValueNode();
             MappingNode serializedSubNode = (MappingNode) YamlNodeUtils.get(serializedNode, entry.getKey()).getValueNode();
-            doMerge(entry.getValue(), readSubNode, serializedSubNode);
+            doMerge(configOptions, entry.getValue(), readSubNode, serializedSubNode);
         }
     }
 
