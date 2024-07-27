@@ -74,7 +74,7 @@ public class YamlNodeUtils {
                 break;
             }
         }
-        return comments.subList(cut, comments.size());
+        return comments.subList(0, cut);
     }
 
     public static void removeLeadingBlankLines(final Node node) {
