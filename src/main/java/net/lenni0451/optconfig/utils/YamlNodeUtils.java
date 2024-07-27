@@ -60,16 +60,18 @@ public class YamlNodeUtils {
         int index = mappingNode.getValue().indexOf(tuple);
         mappingNode.getValue().remove(tuple);
 
-        if (index == 0 && !mappingNode.getValue().isEmpty()) {
-            //If the first element is removed, copy all leading comments to the next element
-            //Make sure to filter out unrelated comments that are not related to the removed element
-            List<CommentLine> unrelatedComments = getUnrelatedComments(tuple.getKeyNode());
-            if (!unrelatedComments.isEmpty()) {
-                NodeTuple nextTuple = mappingNode.getValue().get(0);
-                removeLeadingBlankLines(nextTuple.getKeyNode()); //First remove all leading blank lines
-                List<CommentLine> blockComments = makeCommentsMutable(nextTuple.getKeyNode());
-                blockComments.addAll(0, unrelatedComments); //And then add the unrelated comments including the blank lines
+        List<CommentLine> unrelatedComments = getUnrelatedComments(tuple.getKeyNode());
+        if ((index == 0 && !unrelatedComments.isEmpty()) || unrelatedComments.size() > 1) {
+            //If the first element has unrelated comments, or another element has more than just a blank line, copy all comments to the next element
+            List<CommentLine> comments;
+            if (index < mappingNode.getValue().size()) {
+                comments = makeCommentsMutable(mappingNode.getValue().get(index).getKeyNode());
+            } else {
+                comments = makeMutable(mappingNode.getEndComments());
+                mappingNode.setEndComments(comments);
+                unrelatedComments.remove(unrelatedComments.size() - 1); //Remove the last blank line at the end of the file
             }
+            comments.addAll(0, unrelatedComments);
         }
     }
 
