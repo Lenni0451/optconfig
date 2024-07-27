@@ -51,12 +51,15 @@ public class ConfigLoader {
     }
 
     public <T> T load(final Class<T> configClass, final Path path) throws IOException, IllegalAccessException {
-        SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, configClass);
+        return this.load(ReflectionUtils.instantiate(configClass), path);
+    }
+
+    public <T> T load(final T config, final Path path) throws IOException, IllegalAccessException {
+        SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, config.getClass());
         if (!(index instanceof ConfigIndex)) throw new IllegalArgumentException("The config class must be annotated with @OptConfig");
 
-        T instance = ReflectionUtils.instantiate(configClass);
-        this.parseSection(index, instance, path);
-        return instance;
+        this.parseSection(index, config, path);
+        return config;
     }
 
     public void loadStatic(final Class<?> configClass, final Path path) throws IOException, IllegalAccessException {
