@@ -125,7 +125,7 @@ publishing {
 }
 
 checkstyle {
-    toolVersion = "10.16.0" //Latest version for Java 8: 9.3
+    toolVersion = "9.3" //Latest version for Java 8: 9.3
     configFile = rootProject.file("config/checkstyle/checkstyle.xml")
 }
 
