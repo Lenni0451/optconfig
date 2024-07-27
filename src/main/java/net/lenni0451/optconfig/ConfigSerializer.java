@@ -83,6 +83,7 @@ class ConfigSerializer {
     }
 
     static MappingNode serializeSection(final ConfigLoader configLoader, final SectionIndex sectionIndex, @Nullable final Object instance) throws IllegalAccessException {
+        ConfigOptions options = configLoader.getConfigOptions();
         List<NodeTuple> section = new ArrayList<>();
         for (ConfigOption option : sectionIndex.getOptions()) {
             Object optionValue = option.getField().get(instance);
@@ -100,11 +101,13 @@ class ConfigSerializer {
                 if (typeSerializer == null) typeSerializer = configLoader.typeSerializers.get(null);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(optionValue)));
             }
-            if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, "\n");
-            YamlNodeUtils.appendComment(tuple, option.getDescription());
+            if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
+            YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
             if (!option.isReloadable()) {
-                YamlNodeUtils.appendComment(tuple, "This option is not reloadable.");
-                if (sectionIndex.getSubSections().containsKey(option)) YamlNodeUtils.appendComment(tuple, "This applies to all options in this section.");
+                YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "This option is not reloadable.");
+                if (sectionIndex.getSubSections().containsKey(option)) {
+                    YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "This applies to all options in this section.");
+                }
             }
             section.add(tuple);
         }
@@ -112,8 +115,8 @@ class ConfigSerializer {
             ConfigIndex configIndex = (ConfigIndex) sectionIndex;
             if (configIndex.getVersion() != 1) {
                 NodeTuple tuple = new NodeTuple(configLoader.yaml.represent(OptConfig.CONFIG_VERSION_OPTION), configLoader.yaml.represent(configIndex.getVersion()));
-                if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, "\n");
-                YamlNodeUtils.appendComment(tuple, "The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!");
+                if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
+                YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!");
                 section.add(tuple);
             }
         }

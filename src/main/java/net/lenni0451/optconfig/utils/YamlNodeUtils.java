@@ -102,14 +102,16 @@ public class YamlNodeUtils {
         }
     }
 
-    public static void appendComment(final NodeTuple node, final String... comments) {
+    public static void appendComment(final NodeTuple node, final int commentSpacing, final String... comments) {
         if (comments.length == 0) return;
         List<CommentLine> blockComments = makeCommentsMutable(node.getKeyNode());
+        String commentPrefix = "";
+        for (int i = 0; i < commentSpacing; i++) commentPrefix += " ";
         for (String comment : comments) {
             if (comment.equals("\n")) {
                 blockComments.add(new CommentLine(null, null, "\n", CommentType.BLANK_LINE));
             } else {
-                blockComments.add(new CommentLine(null, null, comment, CommentType.BLOCK));
+                blockComments.add(new CommentLine(null, null, commentPrefix + comment, CommentType.BLOCK));
             }
         }
     }
