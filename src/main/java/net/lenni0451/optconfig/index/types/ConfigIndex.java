@@ -56,7 +56,7 @@ public class ConfigIndex extends SectionIndex {
                     .orElse(null);
             if (migrator == null) {
                 //No fitting migrator was found
-                //Let the default migrator handle the rest
+                //Let the default migrator (DiffMerger) handle the rest
                 break;
             } else {
                 //The next migrator was found
