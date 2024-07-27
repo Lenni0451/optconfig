@@ -87,7 +87,7 @@ public class ConfigLoader {
             //If differences are found, load the config again as Nodes and apply the differences, then save the config again
             String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
             Map<String, Object> values = this.yaml.load(content);
-            ConfigDiff configDiff = ConfigSerializer.deserializeSection(this, sectionIndex, instance, values);
+            ConfigDiff configDiff = ConfigSerializer.deserializeSection(this, sectionIndex, instance, values, null);
             if (!configDiff.isEmpty()) {
                 MappingNode mergedNode = DiffMerger.merge(this, content, sectionIndex, configDiff, instance);
                 this.save(mergedNode, path);

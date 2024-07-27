@@ -24,7 +24,7 @@ public class ConfigDiff {
                 if (!(value instanceof Map)) continue; //If a subsection is not a map, let the deserializer deal with it
                 Map<String, Object> subSectionValues = (Map<String, Object>) value;
                 ConfigDiff subSectionDiff = ConfigDiff.diff(sectionIndex.getSubSections().get(option), subSectionValues);
-                if (!subSectionDiff.isEmpty()) configDiff.subSections.put(option.getName(), subSectionDiff);
+                configDiff.subSections.put(option.getName(), subSectionDiff);
             }
         }
         missedKeys.remove(OptConfig.CONFIG_VERSION_OPTION); //Ignore the version key
@@ -62,7 +62,7 @@ public class ConfigDiff {
     }
 
     public boolean isEmpty() {
-        return this.addedKeys.isEmpty() && this.removedKeys.isEmpty() && invalidKeys.isEmpty() && this.subSections.isEmpty();
+        return this.addedKeys.isEmpty() && this.removedKeys.isEmpty() && invalidKeys.isEmpty() && this.subSections.values().stream().allMatch(ConfigDiff::isEmpty);
     }
 
 }

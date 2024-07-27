@@ -24,9 +24,11 @@ import java.util.Map;
 @SuppressWarnings({"rawtypes", "unchecked"})
 class ConfigSerializer {
 
-    static ConfigDiff deserializeSection(final ConfigLoader configLoader, final SectionIndex sectionIndex, @Nullable final Object instance, final Map<String, Object> values) throws IllegalAccessException {
-        ConfigDiff configDiff = ConfigDiff.diff(sectionIndex, values);
-        if (sectionIndex instanceof ConfigIndex) runMigration((ConfigIndex) sectionIndex, configDiff, values);
+    static ConfigDiff deserializeSection(final ConfigLoader configLoader, final SectionIndex sectionIndex, @Nullable final Object instance, final Map<String, Object> values, ConfigDiff configDiff) throws IllegalAccessException {
+        if (sectionIndex instanceof ConfigIndex) {
+            configDiff = ConfigDiff.diff(sectionIndex, values);
+            runMigration((ConfigIndex) sectionIndex, configDiff, values);
+        }
 
         for (ConfigOption option : sectionIndex.getOptions()) {
             if (!values.containsKey(option.getName())) continue;
@@ -39,7 +41,7 @@ class ConfigSerializer {
                         optionValue = ReflectionUtils.instantiate(option.getField().getType());
                         option.getField().set(instance, optionValue);
                     }
-                    deserializeSection(configLoader, sectionIndex.getSubSections().get(option), optionValue, (Map<String, Object>) value);
+                    deserializeSection(configLoader, sectionIndex.getSubSections().get(option), optionValue, (Map<String, Object>) value, configDiff.getSubSections().get(option.getName()));
                 } else {
                     IConfigTypeSerializer typeSerializer = configLoader.getTypeSerializer(option.getField().getType());
                     option.getField().set(instance, typeSerializer.deserialize(option.getField().getType(), value));
