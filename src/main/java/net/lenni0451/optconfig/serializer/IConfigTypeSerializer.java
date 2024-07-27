@@ -11,7 +11,7 @@ public interface IConfigTypeSerializer<T> {
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
-    T deserialize(final Object serializedObject);
+    T deserialize(final Class<T> typeClass, final Object serializedObject);
 
     /**
      * Serializes the given object to a yaml object.<br>

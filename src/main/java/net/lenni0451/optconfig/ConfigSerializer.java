@@ -41,9 +41,8 @@ class ConfigSerializer {
                     }
                     deserializeSection(configLoader, sectionIndex.getSubSections().get(option), optionValue, (Map<String, Object>) value);
                 } else {
-                    IConfigTypeSerializer typeSerializer = configLoader.typeSerializers.get(option.getField().getType());
-                    if (typeSerializer == null) typeSerializer = configLoader.typeSerializers.get(null);
-                    option.getField().set(instance, typeSerializer.deserialize(value));
+                    IConfigTypeSerializer typeSerializer = configLoader.getTypeSerializer(option.getField().getType());
+                    option.getField().set(instance, typeSerializer.deserialize(option.getField().getType(), value));
                 }
             } catch (Throwable t) {
                 if (!configLoader.getConfigOptions().isResetInvalidOptions()) throw t;
@@ -97,8 +96,7 @@ class ConfigSerializer {
                 MappingNode subSection = serializeSection(configLoader, sectionIndex.getSubSections().get(option), optionValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), subSection);
             } else {
-                IConfigTypeSerializer typeSerializer = configLoader.typeSerializers.get(option.getField().getType());
-                if (typeSerializer == null) typeSerializer = configLoader.typeSerializers.get(null);
+                IConfigTypeSerializer typeSerializer = configLoader.getTypeSerializer(option.getField().getType());
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(optionValue)));
             }
             if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");

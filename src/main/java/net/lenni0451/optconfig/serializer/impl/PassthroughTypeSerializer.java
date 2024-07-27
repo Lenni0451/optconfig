@@ -10,7 +10,7 @@ import net.lenni0451.optconfig.serializer.IConfigTypeSerializer;
 public class PassthroughTypeSerializer implements IConfigTypeSerializer<Object> {
 
     @Override
-    public Object deserialize(Object serializedObject) {
+    public Object deserialize(Class<Object> typeClass, Object serializedObject) {
         return serializedObject;
     }
 

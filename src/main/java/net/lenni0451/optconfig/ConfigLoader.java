@@ -6,6 +6,7 @@ import net.lenni0451.optconfig.index.ConfigType;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import net.lenni0451.optconfig.serializer.IConfigTypeSerializer;
+import net.lenni0451.optconfig.serializer.impl.GenericEnumSerializer;
 import net.lenni0451.optconfig.serializer.impl.PassthroughTypeSerializer;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
 import org.yaml.snakeyaml.DumperOptions;
@@ -29,7 +30,7 @@ public class ConfigLoader {
 
     final Yaml yaml;
     private final ConfigOptions configOptions = new ConfigOptions();
-    final Map<Class<?>, IConfigTypeSerializer> typeSerializers = new HashMap<>();
+    private final Map<Class<?>, IConfigTypeSerializer> typeSerializers = new HashMap<>();
 
     public ConfigLoader() {
         LoaderOptions loaderOptions = new LoaderOptions();
@@ -39,7 +40,8 @@ public class ConfigLoader {
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); //Set the default flow style to block
         this.yaml = new Yaml(new SafeConstructor(loaderOptions), new Representer(dumperOptions), dumperOptions); //Use safe constructor to prevent code execution
 
-        this.addTypeSerializer(null, new PassthroughTypeSerializer()); //The default type serializer if no other is found
+        this.addTypeSerializer(Enum.class, new GenericEnumSerializer()); //A generic enum serializer that converts strings to enum. The names are case-insensitive
+        this.addTypeSerializer(Object.class, new PassthroughTypeSerializer()); //The default type serializer if no other is found
     }
 
     public ConfigOptions getConfigOptions() {
@@ -48,6 +50,17 @@ public class ConfigLoader {
 
     public <T> void addTypeSerializer(final Class<T> clazz, final IConfigTypeSerializer<T> typeSerializer) {
         this.typeSerializers.put(clazz, typeSerializer);
+    }
+
+    <T> IConfigTypeSerializer<T> getTypeSerializer(final Class<T> clazz) {
+        Class<?> currentClass = clazz;
+        while (currentClass != null) {
+            IConfigTypeSerializer<T> typeSerializer = (IConfigTypeSerializer<T>) this.typeSerializers.get(currentClass);
+            if (typeSerializer != null) return typeSerializer;
+            currentClass = currentClass.getSuperclass();
+        }
+        //Should never happen because every class has Object as superclass
+        return (IConfigTypeSerializer<T>) this.typeSerializers.get(Object.class);
     }
 
     public <T> T load(final Class<T> configClass, final Path path) throws IOException, IllegalAccessException {
