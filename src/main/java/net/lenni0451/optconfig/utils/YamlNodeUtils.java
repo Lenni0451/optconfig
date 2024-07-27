@@ -45,6 +45,7 @@ public class YamlNodeUtils {
         int index = mappingNode.getValue().indexOf(oldNodes);
         mappingNode.getValue().set(index, newNodes);
 
+        //Copy over all unrelated comments from the old node to the new node
         List<CommentLine> unrelatedComments = getUnrelatedComments(oldNodes.getKeyNode());
         if (!unrelatedComments.isEmpty()) {
             removeLeadingBlankLines(newNodes.getKeyNode()); //The new node should only have one leading blank line, if any
