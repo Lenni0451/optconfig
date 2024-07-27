@@ -76,7 +76,7 @@ public class ConfigLoader {
     }
 
     public void loadStatic(final Class<?> configClass, final Path path) throws IOException, IllegalAccessException {
-        SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, configClass);
+        SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, configClass);
         if (!(index instanceof ConfigIndex)) throw new IllegalArgumentException("The config class must be annotated with @OptConfig");
         this.parseSection(index, null, path);
     }

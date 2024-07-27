@@ -2,7 +2,6 @@ package net.lenni0451.optconfig.index;
 
 import org.jetbrains.annotations.ApiStatus;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 @ApiStatus.Internal
@@ -10,17 +9,17 @@ public enum ConfigType {
 
     STATIC {
         @Override
-        public boolean matches(Field field) {
-            return Modifier.isStatic(field.getModifiers());
+        public boolean matches(int modifier) {
+            return Modifier.isStatic(modifier);
         }
     },
     INSTANCED {
         @Override
-        public boolean matches(Field field) {
-            return !Modifier.isStatic(field.getModifiers());
+        public boolean matches(int modifier) {
+            return !Modifier.isStatic(modifier);
         }
     };
 
-    public abstract boolean matches(final Field field);
+    public abstract boolean matches(final int modifier);
 
 }

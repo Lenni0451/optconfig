@@ -2,12 +2,16 @@ package net.lenni0451.optconfig.index;
 
 import net.lenni0451.optconfig.annotations.*;
 import net.lenni0451.optconfig.annotations.internal.Migrators;
+import net.lenni0451.optconfig.exceptions.InvalidValidatorException;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 @ApiStatus.Internal
 public class ClassIndexer {
@@ -31,14 +35,24 @@ public class ClassIndexer {
 
     private static void indexFields(final SectionIndex sectionIndex) {
         Class<?> clazz = sectionIndex.getClazz();
+        Map<String, Method> validatorMethods = new HashMap<>();
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (!sectionIndex.getConfigType().matches(method.getModifiers())) continue;
+            Validator validator = method.getDeclaredAnnotation(Validator.class);
+            if (validator == null) continue;
+            method.setAccessible(true);
+            if (method.getParameterCount() != 1) throw new InvalidValidatorException(clazz, method, "does not have exactly one parameter");
+            if (!method.getReturnType().equals(method.getParameterTypes()[0])) throw new InvalidValidatorException(clazz, method, "does not return the same type as the parameter");
+            validatorMethods.put(validator.value(), method);
+        }
         for (Field field : clazz.getDeclaredFields()) {
-            if (!sectionIndex.getConfigType().matches(field)) continue;
-            field.setAccessible(true);
+            if (!sectionIndex.getConfigType().matches(field.getModifiers())) continue;
             Option option = field.getDeclaredAnnotation(Option.class);
             if (option == null) continue;
+            field.setAccessible(true);
             Description description = field.getDeclaredAnnotation(Description.class);
             NotReloadable notReloadable = field.getDeclaredAnnotation(NotReloadable.class);
-            ConfigOption configOption = new ConfigOption(field, option.value(), description == null ? new String[0] : description.value(), notReloadable == null);
+            ConfigOption configOption = new ConfigOption(field, option.value(), description == null ? new String[0] : description.value(), notReloadable == null, validatorMethods);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }
