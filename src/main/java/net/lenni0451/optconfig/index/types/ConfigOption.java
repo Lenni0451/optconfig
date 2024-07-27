@@ -28,7 +28,8 @@ public class ConfigOption {
     }
 
     public String getName() {
-        return this.name;
+        if (this.name.isEmpty()) return this.field.getName();
+        else return this.name;
     }
 
     public String[] getCliAliases() {
