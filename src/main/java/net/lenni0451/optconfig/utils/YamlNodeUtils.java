@@ -47,6 +47,7 @@ public class YamlNodeUtils {
 
         List<CommentLine> unrelatedComments = getUnrelatedComments(oldNodes.getKeyNode());
         if (!unrelatedComments.isEmpty()) {
+            removeLeadingBlankLines(newNodes.getKeyNode()); //The new node should only have one leading blank line, if any
             List<CommentLine> blockComments = makeCommentsMutable(newNodes.getKeyNode());
             blockComments.addAll(0, unrelatedComments);
         }
@@ -85,9 +86,7 @@ public class YamlNodeUtils {
                 break;
             }
         }
-        comments = comments.subList(0, cut);
-        if (comments.stream().allMatch(comment -> comment.getCommentType().equals(CommentType.BLANK_LINE))) return new ArrayList<>();
-        return comments;
+        return comments.subList(0, cut);
     }
 
     public static void removeLeadingBlankLines(final Node node) {
