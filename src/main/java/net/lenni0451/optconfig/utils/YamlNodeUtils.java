@@ -48,6 +48,7 @@ public class YamlNodeUtils {
         //Copy over all unrelated comments from the old node to the new node
         List<CommentLine> unrelatedComments = getUnrelatedComments(oldNodes.getKeyNode(), true);
         if (!unrelatedComments.isEmpty()) {
+            removeLeadingBlankLines(newNodes.getKeyNode()); //Remove leading blank lines if there are comments to copy over
             List<CommentLine> blockComments = makeCommentsMutable(newNodes.getKeyNode());
             blockComments.addAll(0, unrelatedComments);
         }
@@ -79,7 +80,7 @@ public class YamlNodeUtils {
         //This is done by finding the last blank line before the node and taking all comments before that
         //This is only an assumption, but it should be better than not taking any comments
         List<CommentLine> comments = makeMutable(node.getBlockComments());
-        int cut = comments.size();
+        int cut = 0;
         for (int i = comments.size() - 1; i >= 0; i--) {
             //Find the last blank line
             CommentLine comment = comments.get(i);
