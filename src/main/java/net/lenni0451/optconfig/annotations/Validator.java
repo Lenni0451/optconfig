@@ -13,8 +13,8 @@ import java.lang.annotation.Target;
 public @interface Validator {
 
     /**
-     * @return The name of the validated option
+     * @return The name of the validated option(s)
      */
-    String value();
+    String[] value();
 
 }

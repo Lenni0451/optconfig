@@ -43,7 +43,7 @@ public class ClassIndexer {
             method.setAccessible(true);
             if (method.getParameterCount() != 1) throw new InvalidValidatorException(clazz, method, "does not have exactly one parameter");
             if (!method.getReturnType().equals(method.getParameterTypes()[0])) throw new InvalidValidatorException(clazz, method, "does not return the same type as the parameter");
-            validatorMethods.put(validator.value(), method);
+            for (String option : validator.value()) validatorMethods.put(option, method);
         }
         for (Field field : clazz.getDeclaredFields()) {
             if (!sectionIndex.getConfigType().matches(field.getModifiers())) continue;
