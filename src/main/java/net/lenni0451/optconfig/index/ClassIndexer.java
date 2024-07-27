@@ -39,6 +39,9 @@ public class ClassIndexer {
             Description description = field.getDeclaredAnnotation(Description.class);
             NotReloadable notReloadable = field.getDeclaredAnnotation(NotReloadable.class);
             ConfigOption configOption = new ConfigOption(field, option.value(), description == null ? new String[0] : description.value(), notReloadable == null);
+            if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
+                throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
+            }
             sectionIndex.addOption(configOption);
 
             Section section = field.getType().getDeclaredAnnotation(Section.class);
