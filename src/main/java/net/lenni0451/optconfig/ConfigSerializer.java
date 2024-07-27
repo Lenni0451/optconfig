@@ -26,18 +26,7 @@ class ConfigSerializer {
 
     static ConfigDiff deserializeSection(final ConfigLoader configLoader, final SectionIndex sectionIndex, @Nullable final Object instance, final Map<String, Object> values) throws IllegalAccessException {
         ConfigDiff configDiff = ConfigDiff.diff(sectionIndex, values);
-        if (sectionIndex instanceof ConfigIndex) {
-            ConfigIndex configIndex = (ConfigIndex) sectionIndex;
-            if (values.containsKey(OptConfig.CONFIG_VERSION_OPTION)) {
-                int version = (int) values.getOrDefault(OptConfig.CONFIG_VERSION_OPTION, OptConfig.DEFAULT_VERSION);
-                if (version > configIndex.getVersion()) {
-                    throw new OutdatedClassVersionException(version, configIndex.getVersion());
-                } else if (version < configIndex.getVersion()) {
-                    ConfigIndex.Migrator migrator = configIndex.searchMigrator(version, configIndex.getVersion());
-                    migrator.getInstance().migrate(version, values);
-                }
-            }
-        }
+        if (sectionIndex instanceof ConfigIndex) runMigration((ConfigIndex) sectionIndex, configDiff, values);
 
         for (ConfigOption option : sectionIndex.getOptions()) {
             if (!values.containsKey(option.getName())) continue;
@@ -64,6 +53,33 @@ class ConfigSerializer {
             }
         }
         return configDiff;
+    }
+
+    private static void runMigration(final ConfigIndex configIndex, final ConfigDiff configDiff, final Map<String, Object> values) {
+        int latestVersion = configIndex.getVersion();
+        int currentVersion = (int) values.getOrDefault(OptConfig.CONFIG_VERSION_OPTION, OptConfig.DEFAULT_VERSION);
+        boolean hasVersionField = values.containsKey(OptConfig.CONFIG_VERSION_OPTION);
+        if (latestVersion != OptConfig.DEFAULT_VERSION && !hasVersionField) {
+            //Add the version key if it's missing
+            configDiff.getAddedKeys().add(OptConfig.CONFIG_VERSION_OPTION);
+        } else if (currentVersion != latestVersion) {
+            if (hasVersionField) {
+                //Replace the version because it's outdated
+                configDiff.getInvalidKeys().add(OptConfig.CONFIG_VERSION_OPTION);
+            } else {
+                //The config is outdated and the version key is missing
+                configDiff.getAddedKeys().add(OptConfig.CONFIG_VERSION_OPTION);
+            }
+        }
+
+        if (currentVersion > latestVersion) {
+            //The config file has a newer version than the application
+            //Downgrading is not supported
+            throw new OutdatedClassVersionException(currentVersion, latestVersion);
+        } else if (currentVersion < latestVersion) {
+            ConfigIndex.Migrator migrator = configIndex.searchMigrator(currentVersion, latestVersion);
+            migrator.getInstance().migrate(currentVersion, values);
+        }
     }
 
     static MappingNode serializeSection(final ConfigLoader configLoader, final SectionIndex sectionIndex, @Nullable final Object instance) throws IllegalAccessException {

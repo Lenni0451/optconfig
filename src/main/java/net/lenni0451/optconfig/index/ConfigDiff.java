@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.index;
 
+import net.lenni0451.optconfig.annotations.OptConfig;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import org.jetbrains.annotations.ApiStatus;
@@ -26,6 +27,7 @@ public class ConfigDiff {
                 if (!subSectionDiff.isEmpty()) configDiff.subSections.put(option.getName(), subSectionDiff);
             }
         }
+        missedKeys.remove(OptConfig.CONFIG_VERSION_OPTION); //Ignore the version key
         configDiff.removedKeys.addAll(missedKeys); //All keys that are left were removed from the config
         return configDiff;
     }
