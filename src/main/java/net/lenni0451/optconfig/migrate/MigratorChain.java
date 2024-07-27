@@ -1,10 +1,12 @@
 package net.lenni0451.optconfig.migrate;
 
 import net.lenni0451.optconfig.index.types.ConfigIndex;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 import java.util.Map;
 
+@ApiStatus.Internal
 public class MigratorChain implements IConfigMigrator {
 
     private final List<ConfigIndex.Migrator> migrators;
