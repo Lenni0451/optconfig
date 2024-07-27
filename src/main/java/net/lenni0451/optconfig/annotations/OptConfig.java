@@ -13,6 +13,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OptConfig {
 
+    int DEFAULT_VERSION = 1;
+    String CONFIG_VERSION_OPTION = "config-version";
+
     /**
      * Get the version of the configuration.<br>
      * If a version mismatch is detected, the migrator will be called.
@@ -20,6 +23,6 @@ public @interface OptConfig {
      *
      * @return The version of the configuration
      */
-    int version() default 1;
+    int version() default DEFAULT_VERSION;
 
 }
