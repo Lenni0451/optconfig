@@ -40,6 +40,7 @@ class ConfigSerializer {
         }
 
         for (ConfigOption option : sectionIndex.getOptions()) {
+            if (!values.containsKey(option.getName())) continue;
             Object value = values.get(option.getName());
             if (sectionIndex.getSubSections().containsKey(option)) {
                 Object optionValue = option.getField().get(instance);
