@@ -17,15 +17,15 @@ public class TypeSerializerList<C> {
     public TypeSerializerList() {
         this.serializers = new HashMap<>();
 
-        this.addTypeSerializer(Enum.class, config -> new GenericEnumSerializer<>(config)); //A generic enum serializer that converts strings to enum. The names are case-insensitive
-        this.addTypeSerializer(Object.class, config -> new PassthroughTypeSerializer<C>(config)); //The default type serializer if no other is found
+        this.add(Enum.class, config -> new GenericEnumSerializer<>(config)); //A generic enum serializer that converts strings to enum. The names are case-insensitive
+        this.add(Object.class, config -> new PassthroughTypeSerializer<C>(config)); //The default type serializer if no other is found
     }
 
-    public <T> void addTypeSerializer(final Class<T> type, final Function<C, ConfigTypeSerializer<C, T>> serializerSupplier) {
+    public <T> void add(final Class<T> type, final Function<C, ConfigTypeSerializer<C, T>> serializerSupplier) {
         this.serializers.put(type, unsafeCast(serializerSupplier));
     }
 
-    public <T> ConfigTypeSerializer<C, T> getTypeSerializer(final C config, final Class<T> type) {
+    public <T> ConfigTypeSerializer<C, T> get(final C config, final Class<T> type) {
         Class<?> currentType = type;
         do {
             if (this.serializers.containsKey(currentType)) {
