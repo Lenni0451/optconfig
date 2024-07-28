@@ -1,12 +1,15 @@
 package net.lenni0451.optconfig.serializer.impl;
 
 import net.lenni0451.optconfig.exceptions.InvalidSerializedObjectException;
-import net.lenni0451.optconfig.serializer.IConfigTypeSerializer;
+import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 
 import java.util.Locale;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class GenericEnumSerializer implements IConfigTypeSerializer<Enum> {
+public class GenericEnumSerializer<C> extends ConfigTypeSerializer<C, Enum> {
+
+    public GenericEnumSerializer(final C config) {
+        super(config);
+    }
 
     @Override
     public Enum deserialize(Class<Enum> typeClass, Object serializedObject) {

@@ -2,7 +2,13 @@ package net.lenni0451.optconfig.serializer;
 
 import org.yaml.snakeyaml.nodes.Tag;
 
-public interface IConfigTypeSerializer<T> {
+public abstract class ConfigTypeSerializer<C, T> {
+
+    protected final C config;
+
+    public ConfigTypeSerializer(final C config) {
+        this.config = config;
+    }
 
     /**
      * Deserializes the given yaml object to the type {@code T}.<br>
@@ -11,7 +17,7 @@ public interface IConfigTypeSerializer<T> {
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
-    T deserialize(final Class<T> typeClass, final Object serializedObject);
+    public abstract T deserialize(final Class<T> typeClass, final Object serializedObject);
 
     /**
      * Serializes the given object to a yaml object.<br>
@@ -20,6 +26,6 @@ public interface IConfigTypeSerializer<T> {
      * @param object The object to serialize
      * @return The serialized object
      */
-    Object serialize(final T object);
+    public abstract Object serialize(final T object);
 
 }

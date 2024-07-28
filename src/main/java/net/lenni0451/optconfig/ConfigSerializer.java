@@ -6,7 +6,7 @@ import net.lenni0451.optconfig.index.ConfigDiff;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
-import net.lenni0451.optconfig.serializer.IConfigTypeSerializer;
+import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
 import net.lenni0451.optconfig.utils.YamlNodeUtils;
 import org.jetbrains.annotations.ApiStatus;
@@ -20,11 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
+
 @ApiStatus.Internal
-@SuppressWarnings({"rawtypes", "unchecked"})
 class ConfigSerializer {
 
-    static ConfigDiff deserializeSection(final ConfigLoader configLoader, final SectionIndex sectionIndex, @Nullable final Object instance, final Map<String, Object> values, ConfigDiff configDiff) throws IllegalAccessException {
+    static <C> ConfigDiff deserializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance, final Map<String, Object> values, ConfigDiff configDiff) throws IllegalAccessException {
         if (sectionIndex instanceof ConfigIndex) {
             configDiff = ConfigDiff.diff(sectionIndex, values);
             runMigration((ConfigIndex) sectionIndex, configDiff, values);
@@ -35,18 +36,18 @@ class ConfigSerializer {
             try {
                 Object value = values.get(option.getName());
                 if (sectionIndex.getSubSections().containsKey(option)) {
-                    Object optionValue = option.getField().get(instance);
+                    Object optionValue = option.getField().get(sectionInstance);
                     if (optionValue == null) {
                         //Config sections don't have to be instantiated by the user
                         optionValue = ReflectionUtils.instantiate(option.getField().getType());
-                        option.getField().set(instance, optionValue);
+                        option.getField().set(sectionInstance, optionValue);
                     }
-                    deserializeSection(configLoader, sectionIndex.getSubSections().get(option), optionValue, (Map<String, Object>) value, configDiff.getSubSections().get(option.getName()));
+                    deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), configDiff.getSubSections().get(option.getName()));
                 } else {
-                    IConfigTypeSerializer typeSerializer = configLoader.getTypeSerializer(option.getField().getType());
-                    Object deserializedValue = typeSerializer.deserialize(option.getField().getType(), value);
-                    if (option.getValidator() != null) deserializedValue = ReflectionUtils.invoke(option.getValidator(), instance, deserializedValue);
-                    option.getField().set(instance, deserializedValue);
+                    ConfigTypeSerializer<C, ?> typeSerializer = configLoader.getTypeSerializers().getTypeSerializer(configInstance, option.getField().getType());
+                    Object deserializedValue = typeSerializer.deserialize(unsafeCast(option.getField().getType()), value);
+                    if (option.getValidator() != null) deserializedValue = ReflectionUtils.invoke(option.getValidator(), sectionInstance, deserializedValue);
+                    option.getField().set(sectionInstance, deserializedValue);
                 }
             } catch (Throwable t) {
                 if (!configLoader.getConfigOptions().isResetInvalidOptions()) throw t;
@@ -85,25 +86,25 @@ class ConfigSerializer {
         }
     }
 
-    static MappingNode serializeSection(final ConfigLoader configLoader, final SectionIndex sectionIndex, @Nullable final Object instance) throws IllegalAccessException {
+    static <C> MappingNode serializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance) throws IllegalAccessException {
         ConfigOptions options = configLoader.getConfigOptions();
         List<NodeTuple> section = new ArrayList<>();
         for (ConfigOption option : sectionIndex.getOptions()) {
-            Object optionValue = option.getField().get(instance);
+            Object optionValue = option.getField().get(sectionInstance);
             NodeTuple tuple;
             if (sectionIndex.getSubSections().containsKey(option)) {
                 if (optionValue == null) {
                     //Config sections don't have to be instantiated by the user
                     optionValue = ReflectionUtils.instantiate(option.getField().getType());
-                    option.getField().set(instance, optionValue);
+                    option.getField().set(sectionInstance, optionValue);
                 }
-                MappingNode subSection = serializeSection(configLoader, sectionIndex.getSubSections().get(option), optionValue);
+                MappingNode subSection = serializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), subSection);
             } else {
-                IConfigTypeSerializer typeSerializer = configLoader.getTypeSerializer(option.getField().getType());
+                ConfigTypeSerializer<C, ?> typeSerializer = configLoader.getTypeSerializers().getTypeSerializer(configInstance, option.getField().getType());
                 Object deserializedValue = optionValue;
-                if (option.getValidator() != null) deserializedValue = ReflectionUtils.invoke(option.getValidator(), instance, deserializedValue);
-                tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(deserializedValue)));
+                if (option.getValidator() != null) deserializedValue = ReflectionUtils.invoke(option.getValidator(), sectionInstance, deserializedValue);
+                tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(unsafeCast(deserializedValue))));
             }
             if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());

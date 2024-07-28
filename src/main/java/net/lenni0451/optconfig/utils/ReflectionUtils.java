@@ -24,4 +24,10 @@ public class ReflectionUtils {
         }
     }
 
+    @Deprecated //Not for removal, but dangerous
+    public static <T> T unsafeCast(final Object o) {
+        //Not really reflection, but surely fits here
+        return (T) o;
+    }
+
 }
