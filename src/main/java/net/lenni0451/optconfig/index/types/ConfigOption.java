@@ -1,6 +1,9 @@
 package net.lenni0451.optconfig.index.types;
 
 import lombok.ToString;
+import net.lenni0451.optconfig.annotations.Description;
+import net.lenni0451.optconfig.annotations.NotReloadable;
+import net.lenni0451.optconfig.annotations.Option;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
@@ -18,13 +21,15 @@ public class ConfigOption {
     private final boolean reloadable;
     @Nullable
     private final Method validator;
+    private final String[] dependencies;
 
-    public ConfigOption(final Field field, final String name, final String[] description, final boolean reloadable, final Map<String, Method> validatorMethods) {
+    public ConfigOption(final Field field, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, final Map<String, Method> validatorMethods) {
         this.field = field;
-        this.name = name;
-        this.description = description;
-        this.reloadable = reloadable;
+        this.name = option.value();
+        this.description = description == null ? new String[0] : description.value();
+        this.reloadable = notReloadable == null;
         this.validator = validatorMethods.get(this.getName());
+        this.dependencies = option.dependencies();
     }
 
     public Field getField() {
@@ -47,6 +52,10 @@ public class ConfigOption {
     @Nullable
     public Method getValidator() {
         return this.validator;
+    }
+
+    public String[] getDependencies() {
+        return this.dependencies;
     }
 
 }

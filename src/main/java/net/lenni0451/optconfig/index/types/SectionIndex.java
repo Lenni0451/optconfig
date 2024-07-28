@@ -2,6 +2,7 @@ package net.lenni0451.optconfig.index.types;
 
 import lombok.ToString;
 import net.lenni0451.optconfig.index.ConfigType;
+import net.lenni0451.optconfig.index.DependencySorter;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
@@ -45,6 +46,12 @@ public class SectionIndex {
 
     public void addSubSection(final ConfigOption option, final SectionIndex section) {
         this.subSections.put(option, section);
+    }
+
+    public void sortOptions() {
+        List<ConfigOption> sortedOptions = DependencySorter.sortOptions(this.options);
+        this.options.clear();
+        this.options.addAll(sortedOptions);
     }
 
     public boolean isEmpty() {

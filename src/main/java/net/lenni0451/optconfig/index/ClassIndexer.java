@@ -52,7 +52,7 @@ public class ClassIndexer {
             field.setAccessible(true);
             Description description = field.getDeclaredAnnotation(Description.class);
             NotReloadable notReloadable = field.getDeclaredAnnotation(NotReloadable.class);
-            ConfigOption configOption = new ConfigOption(field, option.value(), description == null ? new String[0] : description.value(), notReloadable == null, validatorMethods);
+            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, validatorMethods);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }
@@ -61,6 +61,7 @@ public class ClassIndexer {
             Section section = field.getType().getDeclaredAnnotation(Section.class);
             if (section != null) sectionIndex.addSubSection(configOption, indexClass(sectionIndex.getConfigType(), field.getType()));
         }
+        sectionIndex.sortOptions();
     }
 
 }

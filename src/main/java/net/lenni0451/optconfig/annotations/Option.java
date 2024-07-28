@@ -1,5 +1,7 @@
 package net.lenni0451.optconfig.annotations;
 
+import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -21,5 +23,15 @@ public @interface Option {
      * @return The name of the option
      */
     String value() default "";
+
+    /**
+     * Get the dependencies of this option.<br>
+     * The array contains the names of the options that should be loaded before this option.<br>
+     * The config instance can be used in the {@link ConfigTypeSerializer} to get the values of the dependencies.<br>
+     * <b>Dependencies only work inside the same section!</b>
+     *
+     * @return The dependencies of this option
+     */
+    String[] dependencies() default {};
 
 }
