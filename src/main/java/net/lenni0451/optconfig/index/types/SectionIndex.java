@@ -47,4 +47,8 @@ public class SectionIndex {
         this.subSections.put(option, section);
     }
 
+    public boolean isEmpty() {
+        return this.options.isEmpty() && this.subSections.values().stream().allMatch(SectionIndex::isEmpty);
+    }
+
 }

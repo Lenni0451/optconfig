@@ -1,5 +1,7 @@
 package net.lenni0451.optconfig;
 
+import net.lenni0451.optconfig.exceptions.ConfigNotAnnotatedException;
+import net.lenni0451.optconfig.exceptions.EmptyConfigException;
 import net.lenni0451.optconfig.index.ClassIndexer;
 import net.lenni0451.optconfig.index.ConfigDiff;
 import net.lenni0451.optconfig.index.ConfigType;
@@ -54,7 +56,8 @@ public class ConfigLoader<C> {
 
     public C load(final C config, final Path path) throws IOException, IllegalAccessException {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, this.configClass);
-        if (!(index instanceof ConfigIndex)) throw new IllegalArgumentException("The config class must be annotated with @OptConfig");
+        if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
+        if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
 
         this.parseSection(index, config, path);
         return config;
@@ -62,7 +65,8 @@ public class ConfigLoader<C> {
 
     public void loadStatic(final Path path) throws IOException, IllegalAccessException {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, this.configClass);
-        if (!(index instanceof ConfigIndex)) throw new IllegalArgumentException("The config class must be annotated with @OptConfig");
+        if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
+        if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
         this.parseSection(index, null, path);
     }
 
