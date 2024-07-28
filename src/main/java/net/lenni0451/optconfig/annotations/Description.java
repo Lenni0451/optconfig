@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Set a default description for the option
+ * Set a default description for the option.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

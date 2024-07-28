@@ -62,7 +62,7 @@ public class ConfigDiff {
     }
 
     public boolean isEmpty() {
-        return this.addedKeys.isEmpty() && this.removedKeys.isEmpty() && invalidKeys.isEmpty() && this.subSections.values().stream().allMatch(ConfigDiff::isEmpty);
+        return this.addedKeys.isEmpty() && this.removedKeys.isEmpty() && this.invalidKeys.isEmpty() && this.subSections.values().stream().allMatch(ConfigDiff::isEmpty);
     }
 
 }
