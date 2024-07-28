@@ -14,6 +14,7 @@ public abstract class ConfigTypeSerializer<C, T> {
      * Deserializes the given yaml object to the type {@code T}.<br>
      * See {@link Tag} for the possible types.
      *
+     * @param typeClass        The class of the type to deserialize
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
