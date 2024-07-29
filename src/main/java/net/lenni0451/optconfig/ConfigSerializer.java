@@ -92,6 +92,7 @@ class ConfigSerializer {
         MappingNode rootNode = new MappingNode(Tag.MAP, section, DumperOptions.FlowStyle.BLOCK);
         for (String optionName : sectionIndex.getOptionsOrder()) {
             ConfigOption option = sectionIndex.getOption(optionName);
+            if (option == null) throw new IllegalStateException("Section index is desynchronized with options order");
             Object optionValue = option.getField().get(sectionInstance);
             NodeTuple tuple;
             if (sectionIndex.getSubSections().containsKey(option)) {

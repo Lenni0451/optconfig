@@ -1,10 +1,12 @@
 package net.lenni0451.optconfig.index.types;
 
 import lombok.ToString;
+import net.lenni0451.optconfig.exceptions.DuplicateOptionException;
 import net.lenni0451.optconfig.index.ConfigType;
 import net.lenni0451.optconfig.index.DependencySorter;
 import org.jetbrains.annotations.ApiStatus;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,11 +43,13 @@ public class SectionIndex {
         return this.options;
     }
 
+    @Nullable
     public ConfigOption getOption(final String name) {
-        return this.options.stream().filter(option -> option.getName().equals(name)).findFirst().orElseThrow(() -> new IllegalArgumentException("Option with name '" + name + "' not found"));
+        return this.options.stream().filter(option -> option.getName().equals(name)).findFirst().orElse(null);
     }
 
     public void addOption(final ConfigOption option) {
+        if (this.getOption(option.getName()) != null) throw new DuplicateOptionException(option.getName());
         this.optionsOrder.add(option.getName());
         this.options.add(option);
     }
