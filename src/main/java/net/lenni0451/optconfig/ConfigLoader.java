@@ -114,15 +114,19 @@ public class ConfigLoader<C> {
             String content = configProvider.load();
             Map<String, Object> values = this.yaml.load(content);
             ConfigDiff configDiff = ConfigSerializer.deserializeSection(this, instance, sectionIndex, instance, values, null);
-            if (!configDiff.isEmpty()) {
-                MappingNode mergedNode = DiffMerger.merge(this, content, sectionIndex, configDiff, instance);
-                this.save(mergedNode, configProvider);
+            if (!this.configOptions.isRewriteConfig()) {
+                //If the config should be rewritten anyway, this step is not necessary
+                if (!configDiff.isEmpty()) {
+                    MappingNode mergedNode = DiffMerger.merge(this, content, sectionIndex, configDiff, instance);
+                    this.save(mergedNode, configProvider);
+                }
+                return;
             }
-        } else {
-            //If the file does not exist, simply serialize the default values
-            MappingNode node = ConfigSerializer.serializeSection(this, instance, sectionIndex, instance);
-            this.save(node, configProvider);
         }
+        //If the file does not exist, simply serialize the default values
+        //This also applies if ConfigOptions.isRewriteConfig() is true
+        MappingNode node = ConfigSerializer.serializeSection(this, instance, sectionIndex, instance);
+        this.save(node, configProvider);
     }
 
     private void save(final MappingNode node, final ConfigProvider configProvider) throws IOException {

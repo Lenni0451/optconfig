@@ -12,6 +12,7 @@ public class ConfigOptions {
     private boolean removeUnknownOptions = true;
     private boolean addMissingOptions = true;
     private int commentSpacing = 0;
+    private boolean rewriteConfig = false;
 
     /**
      * Set if invalid options should be reset to their default value.<br>
@@ -60,6 +61,20 @@ public class ConfigOptions {
      */
     public ConfigOptions setCommentSpacing(final int value) {
         this.commentSpacing = value;
+        return this;
+    }
+
+    /**
+     * Set if the config should be rewritten when loading it.<br>
+     * This will remove all user comments and formatting.<br>
+     * Option values are not affected by this.<br>
+     * Default: {@code false}
+     *
+     * @param value The new value
+     * @return The config options
+     */
+    public ConfigOptions setRewriteConfig(final boolean value) {
+        this.rewriteConfig = value;
         return this;
     }
 
