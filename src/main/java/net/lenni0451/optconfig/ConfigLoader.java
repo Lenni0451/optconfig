@@ -30,10 +30,10 @@ import java.util.Map;
  */
 public class ConfigLoader<C> {
 
-    private final Class<C> configClass;
+    final Class<C> configClass;
     final Yaml yaml;
     private final ConfigOptions configOptions = new ConfigOptions();
-    public final TypeSerializerList<C> typeSerializers = new TypeSerializerList<>();
+    private final TypeSerializerList<C> typeSerializers = new TypeSerializerList<>();
 
     public ConfigLoader(final Class<C> configClass) {
         this.configClass = configClass;

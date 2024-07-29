@@ -7,10 +7,14 @@ import java.lang.reflect.Method;
 public class ReflectionUtils {
 
     public static <T> T instantiate(final Class<T> clazz) {
+        return instantiate(clazz, new Class<?>[0], new Object[0]);
+    }
+
+    public static <T> T instantiate(final Class<T> clazz, final Class<?>[] argTypes, final Object[] args) {
         try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            Constructor<T> constructor = clazz.getDeclaredConstructor(argTypes);
             constructor.setAccessible(true);
-            return constructor.newInstance();
+            return constructor.newInstance(args);
         } catch (Throwable t) {
             throw new IllegalArgumentException("The class " + clazz.getName() + " must have a public no-args constructor", t);
         }

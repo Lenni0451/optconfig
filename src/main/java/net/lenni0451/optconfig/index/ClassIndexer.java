@@ -53,7 +53,8 @@ public class ClassIndexer {
             field.setAccessible(true);
             Description description = field.getDeclaredAnnotation(Description.class);
             NotReloadable notReloadable = field.getDeclaredAnnotation(NotReloadable.class);
-            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, validatorMethods);
+            TypeSerializer typeSerializer = field.getDeclaredAnnotation(TypeSerializer.class);
+            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, validatorMethods);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }

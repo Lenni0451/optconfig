@@ -4,6 +4,8 @@ import lombok.ToString;
 import net.lenni0451.optconfig.annotations.Description;
 import net.lenni0451.optconfig.annotations.NotReloadable;
 import net.lenni0451.optconfig.annotations.Option;
+import net.lenni0451.optconfig.annotations.TypeSerializer;
+import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
@@ -19,15 +21,17 @@ public class ConfigOption {
     private final String name;
     private final String[] description;
     private final boolean reloadable;
+    private final Class<? extends ConfigTypeSerializer<?, ?>> typeSerializer;
     @Nullable
     private final Method validator;
     private final String[] dependencies;
 
-    public ConfigOption(final Field field, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, final Map<String, Method> validatorMethods) {
+    public ConfigOption(final Field field, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, final Map<String, Method> validatorMethods) {
         this.field = field;
         this.name = option.value();
         this.description = description == null ? new String[0] : description.value();
         this.reloadable = notReloadable == null;
+        this.typeSerializer = typeSerializer == null ? null : typeSerializer.value();
         this.validator = validatorMethods.get(this.getName());
         this.dependencies = option.dependencies();
     }
@@ -47,6 +51,10 @@ public class ConfigOption {
 
     public boolean isReloadable() {
         return this.reloadable;
+    }
+
+    public Class<? extends ConfigTypeSerializer<?, ?>> getTypeSerializer() {
+        return this.typeSerializer;
     }
 
     @Nullable
