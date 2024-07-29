@@ -28,7 +28,8 @@ public class StringTypeSerializer<C> extends ConfigTypeSerializer<C, String> {
 
     @Override
     public String deserialize(Class<String> typeClass, Object serializedObject) {
-        if (serializedObject instanceof String) return (String) serializedObject;
+        if (serializedObject == null) return null;
+        else if (serializedObject instanceof String) return (String) serializedObject;
         else if (serializedObject instanceof Number || serializedObject instanceof Boolean) return serializedObject.toString();
         else throw new InvalidSerializedObjectException(String.class, serializedObject.getClass());
     }
