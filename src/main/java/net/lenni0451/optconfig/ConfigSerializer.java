@@ -121,7 +121,7 @@ class ConfigSerializer {
         }
         if (sectionIndex instanceof ConfigIndex) {
             ConfigIndex configIndex = (ConfigIndex) sectionIndex;
-            if (configIndex.getVersion() != 1) {
+            if (configIndex.getVersion() != OptConfig.DEFAULT_VERSION) {
                 NodeTuple tuple = new NodeTuple(configLoader.yaml.represent(OptConfig.CONFIG_VERSION_OPTION), configLoader.yaml.represent(configIndex.getVersion()));
                 if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
                 YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!");
