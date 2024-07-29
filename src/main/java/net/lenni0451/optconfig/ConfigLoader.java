@@ -105,7 +105,7 @@ public class ConfigLoader<C> {
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
         this.parseSection(index, null, configProvider, false);
-        return new ConfigContext<C>(this, null, configProvider, (ConfigIndex) index);
+        return new ConfigContext<>(this, null, configProvider, (ConfigIndex) index);
     }
 
     void parseSection(final SectionIndex sectionIndex, @Nullable final C instance, final ConfigProvider configProvider, final boolean reload) throws IOException, IllegalAccessException {

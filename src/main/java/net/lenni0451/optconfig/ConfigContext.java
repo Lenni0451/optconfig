@@ -7,6 +7,7 @@ import org.yaml.snakeyaml.nodes.MappingNode;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Field;
 
 public class ConfigContext<C> {
 
@@ -20,6 +21,24 @@ public class ConfigContext<C> {
         this.configInstance = configInstance;
         this.configProvider = configProvider;
         this.configIndex = configIndex;
+
+        this.setContextField();
+    }
+
+    private void setContextField() {
+        try {
+            Field contextField = null;
+            for (Field field : this.configInstance.getClass().getDeclaredFields()) {
+                if (!this.configIndex.getConfigType().matches(field.getModifiers())) continue;
+                if (!ConfigContext.class.isAssignableFrom(field.getType())) continue;
+                contextField = field;
+                contextField.setAccessible(true);
+                break;
+            }
+            if (contextField != null) contextField.set(this.configInstance, this);
+        } catch (Throwable ignored) {
+            //Not critical
+        }
     }
 
     /**
