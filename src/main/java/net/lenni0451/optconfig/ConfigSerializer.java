@@ -89,6 +89,7 @@ class ConfigSerializer {
     static <C> MappingNode serializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance) throws IllegalAccessException {
         ConfigOptions options = configLoader.getConfigOptions();
         List<NodeTuple> section = new ArrayList<>();
+        MappingNode rootNode = new MappingNode(Tag.MAP, section, DumperOptions.FlowStyle.BLOCK);
         for (ConfigOption option : sectionIndex.getOptions()) {
             Object optionValue = option.getField().get(sectionInstance);
             NodeTuple tuple;
@@ -124,8 +125,12 @@ class ConfigSerializer {
                 YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!");
                 section.add(tuple);
             }
+            if (configIndex.getHeader().length > 0) {
+                YamlNodeUtils.appendComment(rootNode, options.getCommentSpacing(), configIndex.getHeader());
+                YamlNodeUtils.appendComment(rootNode, options.getCommentSpacing(), "\n"); //Add an empty line after the header
+            }
         }
-        return new MappingNode(Tag.MAP, section, DumperOptions.FlowStyle.BLOCK);
+        return rootNode;
     }
 
 }

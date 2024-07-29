@@ -25,4 +25,13 @@ public @interface OptConfig {
      */
     int version() default DEFAULT_VERSION;
 
+    /**
+     * Get the header of the configuration file.<br>
+     * This header will be written at the top of the configuration file.<br>
+     * A new line will be added automatically below the header.
+     *
+     * @return The header of the configuration file
+     */
+    String[] header() default {};
+
 }

@@ -104,8 +104,12 @@ public class YamlNodeUtils {
     }
 
     public static void appendComment(final NodeTuple node, final int commentSpacing, final String... comments) {
+        appendComment(node.getKeyNode(), commentSpacing, comments);
+    }
+
+    public static void appendComment(final Node node, final int commentSpacing, final String... comments) {
         if (comments.length == 0) return;
-        List<CommentLine> blockComments = makeCommentsMutable(node.getKeyNode());
+        List<CommentLine> blockComments = makeCommentsMutable(node);
         String commentPrefix = "";
         for (int i = 0; i < commentSpacing; i++) commentPrefix += " ";
         for (String comment : comments) {

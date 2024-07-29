@@ -21,7 +21,7 @@ public class ClassIndexer {
         if (clazz.getDeclaredAnnotation(OptConfig.class) != null) {
             OptConfig optConfig = clazz.getDeclaredAnnotation(OptConfig.class);
             Migrators migrators = clazz.getDeclaredAnnotation(Migrators.class);
-            ConfigIndex configIndex = new ConfigIndex(configType, clazz, optConfig.version());
+            ConfigIndex configIndex = new ConfigIndex(configType, clazz, optConfig);
             for (Migrator migrator : migrators.value()) configIndex.addMigrator(migrator.from(), migrator.to(), migrator.migrator());
             sectionIndex = configIndex;
         } else if (clazz.getDeclaredAnnotation(Section.class) != null) {

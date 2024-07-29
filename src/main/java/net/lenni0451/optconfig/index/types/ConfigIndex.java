@@ -2,6 +2,7 @@ package net.lenni0451.optconfig.index.types;
 
 import lombok.ToString;
 import lombok.Value;
+import net.lenni0451.optconfig.annotations.OptConfig;
 import net.lenni0451.optconfig.index.ConfigType;
 import net.lenni0451.optconfig.migrate.IConfigMigrator;
 import net.lenni0451.optconfig.migrate.MigratorChain;
@@ -15,16 +16,22 @@ import java.util.*;
 public class ConfigIndex extends SectionIndex {
 
     private final int version;
+    private final String[] header;
     private final Map<MigratorIndex, Class<? extends IConfigMigrator>> migrators;
 
-    public ConfigIndex(final ConfigType configType, final Class<?> clazz, final int version) {
+    public ConfigIndex(final ConfigType configType, final Class<?> clazz, final OptConfig optConfig) {
         super(configType, clazz);
-        this.version = version;
+        this.version = optConfig.version();
+        this.header = optConfig.header();
         this.migrators = new HashMap<>();
     }
 
     public int getVersion() {
         return this.version;
+    }
+
+    public String[] getHeader() {
+        return this.header;
     }
 
     public Map<MigratorIndex, Class<? extends IConfigMigrator>> getMigrators() {
