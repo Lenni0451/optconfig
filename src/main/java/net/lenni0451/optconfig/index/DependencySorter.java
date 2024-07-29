@@ -1,6 +1,7 @@
 package net.lenni0451.optconfig.index;
 
 import net.lenni0451.optconfig.exceptions.CircularDependencyException;
+import net.lenni0451.optconfig.exceptions.UnknownDependencyException;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -16,6 +17,7 @@ public class DependencySorter {
      * @param options The list of ConfigOption objects to sort
      * @return The sorted list of ConfigOption objects
      * @throws CircularDependencyException If a circular dependency is detected
+     * @throws UnknownDependencyException  If a dependency is not found
      */
     public static List<ConfigOption> sortOptions(final List<ConfigOption> options) {
         Map<String, ConfigOption> optionMap = new HashMap<>(); //Map to store ConfigOption objects by their name
@@ -28,6 +30,9 @@ public class DependencySorter {
             dependencyGraph.putIfAbsent(optionName, new ArrayList<>());
 
             for (String dependency : option.getDependencies()) {
+                //Check if the dependency exists
+                if (!optionMap.containsKey(dependency) && !dependencyGraph.containsKey(dependency)) throw new UnknownDependencyException(optionName, dependency);
+
                 dependencyGraph.putIfAbsent(dependency, new ArrayList<>());
                 dependencyGraph.get(dependency).add(optionName);
             }
