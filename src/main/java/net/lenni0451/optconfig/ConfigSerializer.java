@@ -120,7 +120,7 @@ class ConfigSerializer {
                 if (option.getValidator() != null) deserializedValue = ReflectionUtils.invoke(option.getValidator(), sectionInstance, deserializedValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(unsafeCast(deserializedValue))));
             }
-            if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
+            if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
             if (!option.isReloadable()) {
                 YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "This option is not reloadable.");
@@ -134,7 +134,7 @@ class ConfigSerializer {
             ConfigIndex configIndex = (ConfigIndex) sectionIndex;
             if (configIndex.getVersion() != OptConfig.DEFAULT_VERSION) {
                 NodeTuple tuple = new NodeTuple(configLoader.yaml.represent(OptConfig.CONFIG_VERSION_OPTION), configLoader.yaml.represent(configIndex.getVersion()));
-                if (!section.isEmpty()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
+                if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
                 YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!");
                 section.add(tuple);
             }

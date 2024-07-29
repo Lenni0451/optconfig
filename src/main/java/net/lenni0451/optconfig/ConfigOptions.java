@@ -13,6 +13,7 @@ public class ConfigOptions {
     private boolean addMissingOptions = true;
     private int commentSpacing = 0;
     private boolean rewriteConfig = false;
+    private boolean spaceBetweenOptions = true;
 
     /**
      * Set if invalid options should be reset to their default value.<br>
@@ -75,6 +76,18 @@ public class ConfigOptions {
      */
     public ConfigOptions setRewriteConfig(final boolean value) {
         this.rewriteConfig = value;
+        return this;
+    }
+
+    /**
+     * Set if there should be an empty line between each option.<br>
+     * Default: {@code true}
+     *
+     * @param value The new value
+     * @return The config options
+     */
+    public ConfigOptions setSpaceBetweenOptions(final boolean value) {
+        this.spaceBetweenOptions = value;
         return this;
     }
 
