@@ -21,9 +21,8 @@ public class ClassIndexer {
         SectionIndex sectionIndex;
         if (clazz.getDeclaredAnnotation(OptConfig.class) != null) {
             OptConfig optConfig = clazz.getDeclaredAnnotation(OptConfig.class);
-            Migrators migrators = clazz.getDeclaredAnnotation(Migrators.class);
             ConfigIndex configIndex = new ConfigIndex(configType, clazz, optConfig);
-            for (Migrator migrator : migrators.value()) configIndex.addMigrator(migrator.from(), migrator.to(), migrator.migrator());
+            loadMigrators(clazz, configIndex);
             sectionIndex = configIndex;
         } else if (clazz.getDeclaredAnnotation(Section.class) != null) {
             sectionIndex = new SectionIndex(configType, clazz);
@@ -32,6 +31,20 @@ public class ClassIndexer {
         }
         indexFields(sectionIndex);
         return sectionIndex;
+    }
+
+    private static void loadMigrators(final Class<?> clazz, final ConfigIndex configIndex) {
+        Migrators migrators = clazz.getDeclaredAnnotation(Migrators.class);
+        if (migrators != null) {
+            for (Migrator migrator : migrators.value()) {
+                configIndex.addMigrator(migrator.from(), migrator.to(), migrator.migrator());
+            }
+        }
+
+        Migrator migrator = clazz.getDeclaredAnnotation(Migrator.class);
+        if (migrator != null) {
+            configIndex.addMigrator(migrator.from(), migrator.to(), migrator.migrator());
+        }
     }
 
     private static void indexFields(final SectionIndex sectionIndex) {
