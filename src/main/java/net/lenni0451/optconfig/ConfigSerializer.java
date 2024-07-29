@@ -25,7 +25,7 @@ import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 @ApiStatus.Internal
 class ConfigSerializer {
 
-    static <C> ConfigDiff deserializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance, final Map<String, Object> values, ConfigDiff configDiff) throws IllegalAccessException {
+    static <C> ConfigDiff deserializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance, final Map<String, Object> values, final boolean reload, ConfigDiff configDiff) throws IllegalAccessException {
         if (sectionIndex instanceof ConfigIndex) {
             configDiff = ConfigDiff.diff(sectionIndex, values);
             runMigration((ConfigIndex) sectionIndex, configDiff, values);
@@ -33,6 +33,7 @@ class ConfigSerializer {
 
         for (ConfigOption option : sectionIndex.getOptions()) {
             if (!values.containsKey(option.getName())) continue;
+            if (reload && !option.isReloadable()) continue; //Skip not reloadable options, but only if it's a reload operation
             try {
                 Object value = values.get(option.getName());
                 if (sectionIndex.getSubSections().containsKey(option)) {
@@ -42,7 +43,7 @@ class ConfigSerializer {
                         optionValue = ReflectionUtils.instantiate(option.getField().getType());
                         option.getField().set(sectionInstance, optionValue);
                     }
-                    deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), configDiff.getSubSections().get(option.getName()));
+                    deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), reload, configDiff.getSubSections().get(option.getName()));
                 } else {
                     ConfigTypeSerializer<C, ?> typeSerializer;
                     if (option.getTypeSerializer() == null) {

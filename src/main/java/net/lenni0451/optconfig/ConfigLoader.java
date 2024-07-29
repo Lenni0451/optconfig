@@ -66,11 +66,11 @@ public class ConfigLoader<C> {
      * The config class must have an empty constructor.
      *
      * @param configProvider The config provider for loading and saving the config
-     * @return The loaded config
+     * @return The config context
      * @throws IOException            If an I/O error occurs
      * @throws IllegalAccessException If the config class or options are not accessible
      */
-    public C load(final ConfigProvider configProvider) throws IOException, IllegalAccessException {
+    public ConfigContext<C> load(final ConfigProvider configProvider) throws IOException, IllegalAccessException {
         return this.load(ReflectionUtils.instantiate(this.configClass), configProvider);
     }
 
@@ -80,17 +80,17 @@ public class ConfigLoader<C> {
      *
      * @param config         The instance to store the values
      * @param configProvider The config provider for loading and saving the config
-     * @return The loaded config
+     * @return The config context
      * @throws IOException            If an I/O error occurs
      * @throws IllegalAccessException If the config class or options are not accessible
      */
-    public C load(final C config, final ConfigProvider configProvider) throws IOException, IllegalAccessException {
+    public ConfigContext<C> load(final C config, final ConfigProvider configProvider) throws IOException, IllegalAccessException {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, this.configClass);
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
 
-        this.parseSection(index, config, configProvider);
-        return config;
+        this.parseSection(index, config, configProvider, false);
+        return new ConfigContext<>(this, config, configProvider, (ConfigIndex) index);
     }
 
     /**
@@ -100,22 +100,24 @@ public class ConfigLoader<C> {
      * @throws IOException            If an I/O error occurs
      * @throws IllegalAccessException If the config class or options are not accessible
      */
-    public void loadStatic(final ConfigProvider configProvider) throws IOException, IllegalAccessException {
+    public ConfigContext<C> loadStatic(final ConfigProvider configProvider) throws IOException, IllegalAccessException {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, this.configClass);
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
-        this.parseSection(index, null, configProvider);
+        this.parseSection(index, null, configProvider, false);
+        return new ConfigContext<C>(this, null, configProvider, (ConfigIndex) index);
     }
 
-    private void parseSection(final SectionIndex sectionIndex, @Nullable final C instance, final ConfigProvider configProvider) throws IOException, IllegalAccessException {
+    void parseSection(final SectionIndex sectionIndex, @Nullable final C instance, final ConfigProvider configProvider, final boolean reload) throws IOException, IllegalAccessException {
         if (configProvider.exists()) {
             //If the file exists, load the content and deserialize it to a map
             //If differences are found, load the config again as Nodes and apply the differences, then save the config again
             String content = configProvider.load();
             Map<String, Object> values = this.yaml.load(content);
-            ConfigDiff configDiff = ConfigSerializer.deserializeSection(this, instance, sectionIndex, instance, values, null);
-            if (!this.configOptions.isRewriteConfig()) {
+            ConfigDiff configDiff = ConfigSerializer.deserializeSection(this, instance, sectionIndex, instance, values, reload, null);
+            if (!this.configOptions.isRewriteConfig() || reload) {
                 //If the config should be rewritten anyway, this step is not necessary
+                //On reloads also only apply differences because overwriting the config now would revert not reloadable options
                 if (!configDiff.isEmpty()) {
                     MappingNode mergedNode = DiffMerger.merge(this, content, sectionIndex, configDiff, instance);
                     this.save(mergedNode, configProvider);
