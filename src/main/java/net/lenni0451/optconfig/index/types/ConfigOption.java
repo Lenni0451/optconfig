@@ -32,7 +32,7 @@ public class ConfigOption {
         this.description = description == null ? new String[0] : description.value();
         this.reloadable = notReloadable == null;
         this.typeSerializer = typeSerializer == null ? null : typeSerializer.value();
-        this.validator = validatorMethods.get(this.getName());
+        this.validator = validatorMethods.remove(this.getName());
         this.dependencies = option.dependencies();
     }
 

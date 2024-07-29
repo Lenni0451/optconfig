@@ -63,6 +63,7 @@ public class ClassIndexer {
             Section section = field.getType().getDeclaredAnnotation(Section.class);
             if (section != null) sectionIndex.addSubSection(configOption, indexClass(sectionIndex.getConfigType(), field.getType()));
         }
+        if (!validatorMethods.isEmpty()) throw new InvalidValidatorException(clazz, validatorMethods.values().iterator().next(), "has no corresponding option");
         for (ConfigOption option : sectionIndex.getOptions()) {
             //Check if all dependencies are valid
             for (String dependency : option.getDependencies()) {
