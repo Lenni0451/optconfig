@@ -24,6 +24,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+/**
+ * The config loader providing methods to load instanced and static configs.<br>
+ * A new config loader should be created for each config class.
+ *
+ * @param <C> The type of the config instance
+ */
 public class ConfigLoader<C> {
 
     private final Class<C> configClass;
@@ -42,18 +48,44 @@ public class ConfigLoader<C> {
         this.yaml = new Yaml(new SafeConstructor(loaderOptions), new Representer(dumperOptions), dumperOptions); //Use safe constructor to prevent code execution
     }
 
+    /**
+     * @return The config options
+     */
     public ConfigOptions getConfigOptions() {
         return this.configOptions;
     }
 
+    /**
+     * @return The list of type serializers
+     */
     public TypeSerializerList<C> getTypeSerializers() {
         return this.typeSerializers;
     }
 
+    /**
+     * Load an instanced config from the given path.<br>
+     * A new instance of the config class will be created and returned.<br>
+     * The config class must have an empty constructor.
+     *
+     * @param path The path to the config file
+     * @return The loaded config
+     * @throws IOException            If an I/O error occurs
+     * @throws IllegalAccessException If the config class or options are not accessible
+     */
     public C load(final Path path) throws IOException, IllegalAccessException {
         return this.load(ReflectionUtils.instantiate(this.configClass), path);
     }
 
+    /**
+     * Load a static config from the given path.<br>
+     * The given instance will be used to store the values of the config.
+     *
+     * @param config The instance to store the values
+     * @param path   The path to the config file
+     * @return The loaded config
+     * @throws IOException            If an I/O error occurs
+     * @throws IllegalAccessException If the config class or options are not accessible
+     */
     public C load(final C config, final Path path) throws IOException, IllegalAccessException {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, this.configClass);
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
@@ -63,6 +95,13 @@ public class ConfigLoader<C> {
         return config;
     }
 
+    /**
+     * Load a static config from the given path.
+     *
+     * @param path The path to the config file
+     * @throws IOException            If an I/O error occurs
+     * @throws IllegalAccessException If the config class or options are not accessible
+     */
     public void loadStatic(final Path path) throws IOException, IllegalAccessException {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, this.configClass);
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);

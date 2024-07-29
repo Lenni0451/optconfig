@@ -2,6 +2,12 @@ package net.lenni0451.optconfig.serializer;
 
 import org.yaml.snakeyaml.nodes.Tag;
 
+/**
+ * A serializer translating between yaml objects and the correct type.
+ *
+ * @param <C> The type of the config instance
+ * @param <T> The type to serialize
+ */
 public abstract class ConfigTypeSerializer<C, T> {
 
     protected final C config;

@@ -10,6 +10,13 @@ import java.util.function.Function;
 
 import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 
+/**
+ * A list of all available type serializers.<br>
+ * If no serializer is found for the given type, the superclass of the type is checked until a serializer is found.<br>
+ * The default serializer for {@link Object} is a passthrough serializer that just returns the value without any changes.
+ *
+ * @param <C> The type of the config instance
+ */
 @SuppressWarnings("Convert2MethodRef") //For some reason the code doesn't compile if method references are used
 public class TypeSerializerList<C> {
 
