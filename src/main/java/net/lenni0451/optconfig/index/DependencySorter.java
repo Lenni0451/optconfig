@@ -30,9 +30,6 @@ public class DependencySorter {
             dependencyGraph.putIfAbsent(optionName, new ArrayList<>());
 
             for (String dependency : option.getDependencies()) {
-                //Check if the dependency exists
-                if (!optionMap.containsKey(dependency) && !dependencyGraph.containsKey(dependency)) throw new UnknownDependencyException(optionName, dependency);
-
                 dependencyGraph.putIfAbsent(dependency, new ArrayList<>());
                 dependencyGraph.get(dependency).add(optionName);
             }

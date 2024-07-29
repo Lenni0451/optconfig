@@ -3,6 +3,7 @@ package net.lenni0451.optconfig.index;
 import net.lenni0451.optconfig.annotations.*;
 import net.lenni0451.optconfig.annotations.internal.Migrators;
 import net.lenni0451.optconfig.exceptions.InvalidValidatorException;
+import net.lenni0451.optconfig.exceptions.UnknownDependencyException;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
@@ -60,6 +61,12 @@ public class ClassIndexer {
 
             Section section = field.getType().getDeclaredAnnotation(Section.class);
             if (section != null) sectionIndex.addSubSection(configOption, indexClass(sectionIndex.getConfigType(), field.getType()));
+        }
+        for (ConfigOption option : sectionIndex.getOptions()) {
+            //Check if all dependencies are valid
+            for (String dependency : option.getDependencies()) {
+                if (sectionIndex.getOption(dependency) == null) throw new UnknownDependencyException(option.getName(), dependency);
+            }
         }
         sectionIndex.sortOptions();
     }
