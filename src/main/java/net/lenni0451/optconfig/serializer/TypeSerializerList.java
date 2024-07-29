@@ -25,7 +25,7 @@ public class TypeSerializerList<C> {
     public TypeSerializerList() {
         this.serializers = new HashMap<>();
 
-        this.add(String.class, config -> new StringTypeSerializer<>(config)); //A passthrough serializer for strings
+        this.add(String.class, config -> new StringTypeSerializer<>(config, false)); //A passthrough serializer for strings
         this.add(Enum.class, config -> new GenericEnumSerializer<>(config)); //A generic enum serializer that converts strings to enum. The names are case-insensitive
         this.add(Object.class, config -> new PassthroughTypeSerializer<>(config)); //The default type serializer if no other is found
     }

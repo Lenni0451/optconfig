@@ -22,21 +22,36 @@ import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
  */
 public class StringTypeSerializer<C> extends ConfigTypeSerializer<C, String> {
 
-    public StringTypeSerializer(final C config) {
+    private final boolean emptyIsNull;
+
+    /**
+     * @param config      The config instance
+     * @param emptyIsNull If empty strings should be deserialized as null and null serialized as empty strings
+     */
+    public StringTypeSerializer(final C config, final boolean emptyIsNull) {
         super(config);
+        this.emptyIsNull = emptyIsNull;
     }
 
     @Override
     public String deserialize(Class<String> typeClass, Object serializedObject) {
-        if (serializedObject == null) return null;
-        else if (serializedObject instanceof String) return (String) serializedObject;
-        else if (serializedObject instanceof Number || serializedObject instanceof Boolean) return serializedObject.toString();
-        else throw new InvalidSerializedObjectException(String.class, serializedObject.getClass());
+        if (serializedObject == null) {
+            return null;
+        } else if (serializedObject instanceof String) {
+            String s = (String) serializedObject;
+            if (this.emptyIsNull && s.isEmpty()) return null;
+            else return s;
+        } else if (serializedObject instanceof Number || serializedObject instanceof Boolean) {
+            return serializedObject.toString();
+        } else {
+            throw new InvalidSerializedObjectException(String.class, serializedObject.getClass());
+        }
     }
 
     @Override
     public Object serialize(String object) {
-        return object;
+        if (this.emptyIsNull && object == null) return "";
+        else return object;
     }
 
 }
