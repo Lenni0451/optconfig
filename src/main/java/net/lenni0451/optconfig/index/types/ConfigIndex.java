@@ -4,7 +4,7 @@ import lombok.ToString;
 import lombok.Value;
 import net.lenni0451.optconfig.annotations.OptConfig;
 import net.lenni0451.optconfig.index.ConfigType;
-import net.lenni0451.optconfig.migrate.IConfigMigrator;
+import net.lenni0451.optconfig.migrate.ConfigMigrator;
 import net.lenni0451.optconfig.migrate.MigratorChain;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
 import org.jetbrains.annotations.ApiStatus;
@@ -17,7 +17,7 @@ public class ConfigIndex extends SectionIndex {
 
     private final int version;
     private final String[] header;
-    private final Map<MigratorIndex, Class<? extends IConfigMigrator>> migrators;
+    private final Map<MigratorIndex, Class<? extends ConfigMigrator>> migrators;
 
     public ConfigIndex(final ConfigType configType, final Class<?> clazz, final OptConfig optConfig) {
         super(configType, clazz);
@@ -34,11 +34,11 @@ public class ConfigIndex extends SectionIndex {
         return this.header;
     }
 
-    public Map<MigratorIndex, Class<? extends IConfigMigrator>> getMigrators() {
+    public Map<MigratorIndex, Class<? extends ConfigMigrator>> getMigrators() {
         return this.migrators;
     }
 
-    public void addMigrator(final int from, final int to, final Class<? extends IConfigMigrator> migrator) {
+    public void addMigrator(final int from, final int to, final Class<? extends ConfigMigrator> migrator) {
         if (from == to) throw new IllegalStateException("Migrator " + migrator.getName() + " has the same from and to version");
         if (to < from) throw new IllegalStateException("Migrator " + migrator.getName() + " has a higher from version than the to version");
         this.migrators.put(new MigratorIndex(from, to), migrator);
@@ -57,7 +57,7 @@ public class ConfigIndex extends SectionIndex {
         int[] currentVersion = {from};
         while (currentVersion[0] < to) {
             //Find the next migrator. The biggest version jump is the best fitting one
-            Map.Entry<MigratorIndex, Class<? extends IConfigMigrator>> migrator = this.migrators.entrySet().stream()
+            Map.Entry<MigratorIndex, Class<? extends ConfigMigrator>> migrator = this.migrators.entrySet().stream()
                     .filter(entry -> entry.getKey().from == currentVersion[0] && entry.getKey().to <= to)
                     .max(Comparator.comparingInt(e -> e.getKey().to - e.getKey().from))
                     .orElse(null);
@@ -88,7 +88,7 @@ public class ConfigIndex extends SectionIndex {
     public static class Migrator {
         int from;
         int to;
-        IConfigMigrator instance;
+        ConfigMigrator instance;
     }
 
 }

@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * A migrator that can be used to migrate the config values to a new version.
  */
-public interface IConfigMigrator {
+public interface ConfigMigrator {
 
     /**
      * Migrates the config values to the new version.<br>

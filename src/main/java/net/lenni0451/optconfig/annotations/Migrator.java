@@ -1,7 +1,7 @@
 package net.lenni0451.optconfig.annotations;
 
 import net.lenni0451.optconfig.annotations.internal.Migrators;
-import net.lenni0451.optconfig.migrate.IConfigMigrator;
+import net.lenni0451.optconfig.migrate.ConfigMigrator;
 
 import java.lang.annotation.*;
 
@@ -27,6 +27,6 @@ public @interface Migrator {
     /**
      * @return The migrator class
      */
-    Class<? extends IConfigMigrator> migrator();
+    Class<? extends ConfigMigrator> migrator();
 
 }

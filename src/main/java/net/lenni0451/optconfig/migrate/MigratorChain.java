@@ -14,7 +14,7 @@ import java.util.Map;
  * The default migrator adds missing values and removes deprecated values (if enabled in the {@link ConfigOptions}).
  */
 @ApiStatus.Internal
-public class MigratorChain implements IConfigMigrator {
+public class MigratorChain implements ConfigMigrator {
 
     private final List<ConfigIndex.Migrator> migrators;
 

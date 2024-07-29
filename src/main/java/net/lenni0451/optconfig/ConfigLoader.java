@@ -7,6 +7,7 @@ import net.lenni0451.optconfig.index.ConfigDiff;
 import net.lenni0451.optconfig.index.ConfigType;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.SectionIndex;
+import net.lenni0451.optconfig.provider.ConfigProvider;
 import net.lenni0451.optconfig.serializer.TypeSerializerList;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
 import org.yaml.snakeyaml.DumperOptions;
@@ -19,9 +20,6 @@ import org.yaml.snakeyaml.representer.Representer;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -67,71 +65,70 @@ public class ConfigLoader<C> {
      * A new instance of the config class will be created and returned.<br>
      * The config class must have an empty constructor.
      *
-     * @param path The path to the config file
+     * @param configProvider The config provider for loading and saving the config
      * @return The loaded config
      * @throws IOException            If an I/O error occurs
      * @throws IllegalAccessException If the config class or options are not accessible
      */
-    public C load(final Path path) throws IOException, IllegalAccessException {
-        return this.load(ReflectionUtils.instantiate(this.configClass), path);
+    public C load(final ConfigProvider configProvider) throws IOException, IllegalAccessException {
+        return this.load(ReflectionUtils.instantiate(this.configClass), configProvider);
     }
 
     /**
      * Load a static config from the given path.<br>
      * The given instance will be used to store the values of the config.
      *
-     * @param config The instance to store the values
-     * @param path   The path to the config file
+     * @param config         The instance to store the values
+     * @param configProvider The config provider for loading and saving the config
      * @return The loaded config
      * @throws IOException            If an I/O error occurs
      * @throws IllegalAccessException If the config class or options are not accessible
      */
-    public C load(final C config, final Path path) throws IOException, IllegalAccessException {
+    public C load(final C config, final ConfigProvider configProvider) throws IOException, IllegalAccessException {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, this.configClass);
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
 
-        this.parseSection(index, config, path);
+        this.parseSection(index, config, configProvider);
         return config;
     }
 
     /**
      * Load a static config from the given path.
      *
-     * @param path The path to the config file
+     * @param configProvider The config provider for loading and saving the config
      * @throws IOException            If an I/O error occurs
      * @throws IllegalAccessException If the config class or options are not accessible
      */
-    public void loadStatic(final Path path) throws IOException, IllegalAccessException {
+    public void loadStatic(final ConfigProvider configProvider) throws IOException, IllegalAccessException {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, this.configClass);
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
-        this.parseSection(index, null, path);
+        this.parseSection(index, null, configProvider);
     }
 
-    private void parseSection(final SectionIndex sectionIndex, @Nullable final C instance, final Path path) throws IOException, IllegalAccessException {
-        if (Files.exists(path)) {
+    private void parseSection(final SectionIndex sectionIndex, @Nullable final C instance, final ConfigProvider configProvider) throws IOException, IllegalAccessException {
+        if (configProvider.exists()) {
             //If the file exists, load the content and deserialize it to a map
             //If differences are found, load the config again as Nodes and apply the differences, then save the config again
-            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            String content = configProvider.load();
             Map<String, Object> values = this.yaml.load(content);
             ConfigDiff configDiff = ConfigSerializer.deserializeSection(this, instance, sectionIndex, instance, values, null);
             if (!configDiff.isEmpty()) {
                 MappingNode mergedNode = DiffMerger.merge(this, content, sectionIndex, configDiff, instance);
-                this.save(mergedNode, path);
+                this.save(mergedNode, configProvider);
             }
         } else {
             //If the file does not exist, simply serialize the default values
             MappingNode node = ConfigSerializer.serializeSection(this, instance, sectionIndex, instance);
-            this.save(node, path);
+            this.save(node, configProvider);
         }
     }
 
-    private void save(final MappingNode node, final Path path) throws IOException {
+    private void save(final MappingNode node, final ConfigProvider configProvider) throws IOException {
         StringWriter writer = new StringWriter();
         this.yaml.serialize(node, writer);
-        if (path.getParent() != null) Files.createDirectories(path.getParent()); //Create parent directories if they don't exist
-        Files.write(path, writer.toString().getBytes(StandardCharsets.UTF_8));
+        configProvider.save(writer.toString());
     }
 
 }
