@@ -131,7 +131,7 @@ public class ConfigLoader<C> {
         this.save(node, configProvider);
     }
 
-    private void save(final MappingNode node, final ConfigProvider configProvider) throws IOException {
+    void save(final MappingNode node, final ConfigProvider configProvider) throws IOException {
         StringWriter writer = new StringWriter();
         this.yaml.serialize(node, writer);
         configProvider.save(writer.toString());

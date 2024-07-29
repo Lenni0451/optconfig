@@ -135,6 +135,27 @@ public class YamlNodeUtils {
         }
     }
 
+    public static void copyComments(final MappingNode from, final MappingNode to) {
+        to.setBlockComments(from.getBlockComments());
+        to.setEndComments(from.getEndComments());
+        to.setInLineComments(from.getInLineComments());
+        for (NodeTuple tuple : to.getValue()) {
+            NodeTuple fromTuple = get(from, ((ScalarNode) tuple.getKeyNode()).getValue());
+            if (fromTuple == null) continue;
+
+            tuple.getKeyNode().setBlockComments(fromTuple.getKeyNode().getBlockComments());
+            tuple.getKeyNode().setEndComments(fromTuple.getKeyNode().getEndComments());
+            tuple.getKeyNode().setInLineComments(fromTuple.getKeyNode().getInLineComments());
+            tuple.getValueNode().setBlockComments(fromTuple.getValueNode().getBlockComments());
+            tuple.getValueNode().setEndComments(fromTuple.getValueNode().getEndComments());
+            tuple.getValueNode().setInLineComments(fromTuple.getValueNode().getInLineComments());
+
+            if (tuple.getValueNode() instanceof MappingNode && fromTuple.getValueNode() instanceof MappingNode) {
+                copyComments((MappingNode) fromTuple.getValueNode(), (MappingNode) tuple.getValueNode());
+            }
+        }
+    }
+
     public static List<CommentLine> makeCommentsMutable(final Node node) {
         //Makes the comments of a node mutable
         //This also initializes the comments if they are null

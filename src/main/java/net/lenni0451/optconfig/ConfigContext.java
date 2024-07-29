@@ -2,8 +2,11 @@ package net.lenni0451.optconfig;
 
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.provider.ConfigProvider;
+import net.lenni0451.optconfig.utils.YamlNodeUtils;
+import org.yaml.snakeyaml.nodes.MappingNode;
 
 import java.io.IOException;
+import java.io.StringReader;
 
 public class ConfigContext<C> {
 
@@ -50,7 +53,13 @@ public class ConfigContext<C> {
      * @throws IllegalAccessException If the config class or options are not accessible
      */
     public void save() throws IOException, IllegalAccessException {
-        //TODO
+        MappingNode serializedSection = ConfigSerializer.serializeSection(this.configLoader, this.configInstance, this.configIndex, this.configInstance);
+        if (!this.configLoader.getConfigOptions().isRewriteConfig()) {
+            //If the config should not be rewritten, copy over comments and formatting
+            MappingNode readNode = (MappingNode) this.configLoader.yaml.compose(new StringReader(this.configProvider.load()));
+            YamlNodeUtils.copyComments(readNode, serializedSection);
+        }
+        this.configLoader.save(serializedSection, this.configProvider);
     }
 
 }
