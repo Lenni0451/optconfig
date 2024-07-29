@@ -16,6 +16,7 @@ public class SectionIndex {
 
     private final ConfigType configType;
     private final Class<?> clazz;
+    private final List<String> optionsOrder = new ArrayList<>();
     private final List<ConfigOption> options = new ArrayList<>();
     private final Map<ConfigOption, SectionIndex> subSections = new HashMap<>();
 
@@ -32,11 +33,20 @@ public class SectionIndex {
         return this.clazz;
     }
 
+    public List<String> getOptionsOrder() {
+        return this.optionsOrder;
+    }
+
     public List<ConfigOption> getOptions() {
         return this.options;
     }
 
+    public ConfigOption getOption(final String name) {
+        return this.options.stream().filter(option -> option.getName().equals(name)).findFirst().orElseThrow(() -> new IllegalArgumentException("Option with name '" + name + "' not found"));
+    }
+
     public void addOption(final ConfigOption option) {
+        this.optionsOrder.add(option.getName());
         this.options.add(option);
     }
 

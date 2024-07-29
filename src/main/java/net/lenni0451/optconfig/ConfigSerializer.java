@@ -90,7 +90,8 @@ class ConfigSerializer {
         ConfigOptions options = configLoader.getConfigOptions();
         List<NodeTuple> section = new ArrayList<>();
         MappingNode rootNode = new MappingNode(Tag.MAP, section, DumperOptions.FlowStyle.BLOCK);
-        for (ConfigOption option : sectionIndex.getOptions()) {
+        for (String optionName : sectionIndex.getOptionsOrder()) {
+            ConfigOption option = sectionIndex.getOption(optionName);
             Object optionValue = option.getField().get(sectionInstance);
             NodeTuple tuple;
             if (sectionIndex.getSubSections().containsKey(option)) {
