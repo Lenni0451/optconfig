@@ -5,6 +5,12 @@ import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 
 import java.util.Locale;
 
+/**
+ * A generic serializer for enums.<br>
+ * The enum deserialization is case-insensitive.
+ *
+ * @param <C> The type of the config instance
+ */
 public class GenericEnumSerializer<C> extends ConfigTypeSerializer<C, Enum> {
 
     public GenericEnumSerializer(final C config) {
