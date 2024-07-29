@@ -97,6 +97,7 @@ public class ConfigLoader<C> {
      * Load a static config from the given path.
      *
      * @param configProvider The config provider for loading and saving the config
+     * @return The config context
      * @throws IOException            If an I/O error occurs
      * @throws IllegalAccessException If the config class or options are not accessible
      */
