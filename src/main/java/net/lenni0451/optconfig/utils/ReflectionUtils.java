@@ -7,17 +7,35 @@ import java.lang.reflect.Method;
 public class ReflectionUtils {
 
     public static <T> T instantiate(final Class<T> clazz) {
-        return instantiate(clazz, new Class<?>[0], new Object[0]);
-    }
-
-    public static <T> T instantiate(final Class<T> clazz, final Class<?>[] argTypes, final Object[] args) {
         try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor(argTypes);
+            Constructor<T> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            return constructor.newInstance(args);
+            return constructor.newInstance();
         } catch (Throwable t) {
             throw new IllegalArgumentException("The class " + clazz.getName() + " must have a public no-args constructor", t);
         }
+    }
+
+    public static <T> T instantiate(final Class<T> clazz, final Class<?> argType, final Object arg) {
+        try {
+            Constructor<T> constructor = getConstructor(clazz, argType);
+            constructor.setAccessible(true);
+            return constructor.newInstance(arg);
+        } catch (Throwable t) {
+            throw new IllegalArgumentException("The class " + clazz.getName() + " must have a public constructor with " + argType.getName() + " as type", t);
+        }
+    }
+
+    private static <T> Constructor<T> getConstructor(final Class<T> clazz, final Class<?> argType) {
+        Class<?> currentType = argType;
+        while (currentType != null) {
+            try {
+                return unsafeCast(clazz.getDeclaredConstructor(currentType));
+            } catch (NoSuchMethodException ignored) {
+            }
+            currentType = currentType.getSuperclass();
+        }
+        throw new IllegalArgumentException("The class " + clazz.getName() + " must have a public constructor with " + argType.getName() + " as type");
     }
 
     public static <T> T invoke(final Method method, @Nullable final Object instance, final Object... args) {

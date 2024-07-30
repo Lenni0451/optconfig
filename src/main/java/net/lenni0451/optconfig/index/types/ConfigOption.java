@@ -73,7 +73,7 @@ public class ConfigOption {
         if (this.typeSerializer == null) {
             return unsafeCast(configLoader.getTypeSerializers().get(configInstance, this.field.getType()));
         } else {
-            return unsafeCast(ReflectionUtils.instantiate(this.typeSerializer, new Class[]{configClass}, new Object[]{configInstance}));
+            return unsafeCast(ReflectionUtils.instantiate(this.typeSerializer, configClass, configInstance));
         }
     }
 
