@@ -37,23 +37,18 @@ class ConfigSerializer {
             try {
                 Object value = values.get(option.getName());
                 if (sectionIndex.getSubSections().containsKey(option)) {
-                    Object optionValue = option.getField().get(sectionInstance);
+                    Object optionValue = option.getValue(sectionInstance);
                     if (optionValue == null) {
                         //Config sections don't have to be instantiated by the user
                         optionValue = ReflectionUtils.instantiate(option.getField().getType());
-                        option.getField().set(sectionInstance, optionValue);
+                        option.setValue(sectionInstance, optionValue);
                     }
                     deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), reload, configDiff.getSubSections().get(option.getName()));
                 } else {
-                    ConfigTypeSerializer<C, ?> typeSerializer;
-                    if (option.getTypeSerializer() == null) {
-                        typeSerializer = configLoader.getTypeSerializers().get(configInstance, option.getField().getType());
-                    } else {
-                        typeSerializer = unsafeCast(ReflectionUtils.instantiate(option.getTypeSerializer(), new Class[]{configLoader.configClass}, new Object[]{configInstance}));
-                    }
+                    ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
                     Object deserializedValue = typeSerializer.deserialize(unsafeCast(option.getField().getType()), value);
                     if (option.getValidator() != null) deserializedValue = ReflectionUtils.invoke(option.getValidator(), sectionInstance, deserializedValue);
-                    option.getField().set(sectionInstance, deserializedValue);
+                    option.setValue(sectionInstance, deserializedValue);
                 }
             } catch (Throwable t) {
                 if (!configLoader.getConfigOptions().isResetInvalidOptions()) throw t;
@@ -99,23 +94,18 @@ class ConfigSerializer {
         for (String optionName : sectionIndex.getOptionsOrder()) {
             ConfigOption option = sectionIndex.getOption(optionName);
             if (option == null) throw new IllegalStateException("Section index is desynchronized with options order");
-            Object optionValue = option.getField().get(sectionInstance);
+            Object optionValue = option.getValue(sectionInstance);
             NodeTuple tuple;
             if (sectionIndex.getSubSections().containsKey(option)) {
                 if (optionValue == null) {
                     //Config sections don't have to be instantiated by the user
                     optionValue = ReflectionUtils.instantiate(option.getField().getType());
-                    option.getField().set(sectionInstance, optionValue);
+                    option.setValue(sectionInstance, optionValue);
                 }
                 MappingNode subSection = serializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), subSection);
             } else {
-                ConfigTypeSerializer<C, ?> typeSerializer;
-                if (option.getTypeSerializer() == null) {
-                    typeSerializer = configLoader.getTypeSerializers().get(configInstance, option.getField().getType());
-                } else {
-                    typeSerializer = unsafeCast(ReflectionUtils.instantiate(option.getTypeSerializer(), new Class[]{configLoader.configClass}, new Object[]{configInstance}));
-                }
+                ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
                 Object deserializedValue = optionValue;
                 if (option.getValidator() != null) deserializedValue = ReflectionUtils.invoke(option.getValidator(), sectionInstance, deserializedValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(unsafeCast(deserializedValue))));
