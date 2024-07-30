@@ -73,12 +73,15 @@ public class ConfigContext<C> {
      */
     public void save() throws IOException, IllegalAccessException {
         MappingNode serializedSection = ConfigSerializer.serializeSection(this.configLoader, this.configInstance, this.configIndex, this.configInstance);
-        if (!this.configLoader.getConfigOptions().isRewriteConfig()) {
+        if (this.configLoader.getConfigOptions().isRewriteConfig()) {
+            //If the config should be rewritten, just save the serialized section
+            this.configLoader.save(serializedSection, this.configProvider);
+        } else {
             //If the config should not be rewritten, copy over comments and formatting
             MappingNode readNode = (MappingNode) this.configLoader.yaml.compose(new StringReader(this.configProvider.load()));
-            YamlNodeUtils.copyComments(readNode, serializedSection);
+            YamlNodeUtils.copyValues(serializedSection, readNode);
+            this.configLoader.save(readNode, this.configProvider);
         }
-        this.configLoader.save(serializedSection, this.configProvider);
     }
 
 }

@@ -156,6 +156,26 @@ public class YamlNodeUtils {
         }
     }
 
+    public static void copyValues(final MappingNode from, final MappingNode to) {
+        for (NodeTuple tuple : from.getValue()) {
+            NodeTuple toTuple = get(to, ((ScalarNode) tuple.getKeyNode()).getValue());
+            if (toTuple == null) {
+                //If the node does not exist in the target, add it
+                int index = from.getValue().indexOf(tuple);
+                insert(to, tuple, index);
+            } else {
+                //If the node exists, check if it's a mapping node and copy the values
+                if (tuple.getValueNode() instanceof MappingNode && toTuple.getValueNode() instanceof MappingNode) {
+                    copyValues((MappingNode) tuple.getValueNode(), (MappingNode) toTuple.getValueNode());
+                } else {
+                    //If it's not a mapping node, just copy the value
+                    NodeTuple newTuple = new NodeTuple(toTuple.getKeyNode(), tuple.getValueNode());
+                    replace(to, toTuple, newTuple);
+                }
+            }
+        }
+    }
+
     public static List<CommentLine> makeCommentsMutable(final Node node) {
         //Makes the comments of a node mutable
         //This also initializes the comments if they are null
