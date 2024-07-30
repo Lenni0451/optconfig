@@ -112,7 +112,7 @@ class ConfigSerializer {
             }
             if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
-            if (!option.isReloadable()) {
+            if (!option.isReloadable() && configLoader.getConfigOptions().isNotReloadableComment()) {
                 YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "This option is not reloadable.");
                 if (sectionIndex.getSubSections().containsKey(option)) {
                     YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "This applies to all options in this section.");

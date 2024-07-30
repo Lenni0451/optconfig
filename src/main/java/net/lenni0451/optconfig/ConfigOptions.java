@@ -1,6 +1,7 @@
 package net.lenni0451.optconfig;
 
 import lombok.Getter;
+import net.lenni0451.optconfig.annotations.NotReloadable;
 
 /**
  * The options to configure the behavior of the config loader.
@@ -14,6 +15,7 @@ public class ConfigOptions {
     private int commentSpacing = 0;
     private boolean rewriteConfig = false;
     private boolean spaceBetweenOptions = true;
+    private boolean notReloadableComment = true;
 
     /**
      * Set if invalid options should be reset to their default value.<br>
@@ -88,6 +90,18 @@ public class ConfigOptions {
      */
     public ConfigOptions setSpaceBetweenOptions(final boolean value) {
         this.spaceBetweenOptions = value;
+        return this;
+    }
+
+    /**
+     * Automatically add a comment to options that are marked with {@link NotReloadable}.<br>
+     * Default: {@code true}
+     *
+     * @param value The new value
+     * @return The config options
+     */
+    public ConfigOptions setNotReloadableComment(final boolean value) {
+        this.notReloadableComment = value;
         return this;
     }
 
