@@ -1,8 +1,13 @@
 package net.lenni0451.optconfig.utils;
 
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.comments.CommentLine;
 import org.yaml.snakeyaml.comments.CommentType;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.*;
+import org.yaml.snakeyaml.representer.Representer;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -10,7 +15,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class YamlNodeUtils {
+public class YamlUtils {
+
+    public static Yaml createYaml() {
+        LoaderOptions loaderOptions = new LoaderOptions();
+        loaderOptions.setProcessComments(true); //Enable comment parsing
+        DumperOptions dumperOptions = new DumperOptions();
+        dumperOptions.setProcessComments(true); //Enable comment writing
+        dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); //Set the default flow style to block
+        return new Yaml(new SafeConstructor(loaderOptions), new Representer(dumperOptions), dumperOptions); //Use safe constructor to prevent code execution
+    }
 
     @Nullable
     public static NodeTuple get(final MappingNode mappingNode, final String key) {
@@ -170,7 +184,12 @@ public class YamlNodeUtils {
                 } else {
                     //If it's not a mapping node, just copy the value
                     NodeTuple newTuple = new NodeTuple(toTuple.getKeyNode(), tuple.getValueNode());
-                    replace(to, toTuple, newTuple);
+                    to.getValue().set(to.getValue().indexOf(toTuple), newTuple);
+
+                    //Set the comments of the new tuple to the comments of the old tuple
+                    newTuple.getValueNode().setBlockComments(toTuple.getValueNode().getBlockComments());
+                    newTuple.getValueNode().setEndComments(toTuple.getValueNode().getEndComments());
+                    newTuple.getValueNode().setInLineComments(toTuple.getValueNode().getInLineComments());
                 }
             }
         }

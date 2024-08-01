@@ -2,7 +2,7 @@ package net.lenni0451.optconfig;
 
 import net.lenni0451.optconfig.index.ConfigDiff;
 import net.lenni0451.optconfig.index.types.SectionIndex;
-import net.lenni0451.optconfig.utils.YamlNodeUtils;
+import net.lenni0451.optconfig.utils.YamlUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.NodeTuple;
@@ -26,24 +26,24 @@ class DiffMerger {
     private static void doMerge(final ConfigOptions configOptions, final ConfigDiff configDiff, final MappingNode readNode, final MappingNode serializedNode) {
         if (configOptions.isRemoveUnknownOptions()) {
             for (String removedKey : configDiff.getRemovedKeys()) {
-                YamlNodeUtils.remove(readNode, removedKey);
+                YamlUtils.remove(readNode, removedKey);
             }
         }
         if (configOptions.isAddMissingOptions()) {
             for (String addedKey : configDiff.getAddedKeys()) {
-                NodeTuple tuple = YamlNodeUtils.get(serializedNode, addedKey);
+                NodeTuple tuple = YamlUtils.get(serializedNode, addedKey);
                 int index = serializedNode.getValue().indexOf(tuple);
-                YamlNodeUtils.insert(readNode, tuple, index);
+                YamlUtils.insert(readNode, tuple, index);
             }
         }
         for (String invalidKey : configDiff.getInvalidKeys()) {
-            NodeTuple invalid = YamlNodeUtils.get(readNode, invalidKey);
-            NodeTuple valid = YamlNodeUtils.get(serializedNode, invalidKey);
-            YamlNodeUtils.replace(readNode, invalid, valid);
+            NodeTuple invalid = YamlUtils.get(readNode, invalidKey);
+            NodeTuple valid = YamlUtils.get(serializedNode, invalidKey);
+            YamlUtils.replace(readNode, invalid, valid);
         }
         for (Map.Entry<String, ConfigDiff> entry : configDiff.getSubSections().entrySet()) {
-            MappingNode readSubNode = (MappingNode) YamlNodeUtils.get(readNode, entry.getKey()).getValueNode();
-            MappingNode serializedSubNode = (MappingNode) YamlNodeUtils.get(serializedNode, entry.getKey()).getValueNode();
+            MappingNode readSubNode = (MappingNode) YamlUtils.get(readNode, entry.getKey()).getValueNode();
+            MappingNode serializedSubNode = (MappingNode) YamlUtils.get(serializedNode, entry.getKey()).getValueNode();
             doMerge(configOptions, entry.getValue(), readSubNode, serializedSubNode);
         }
     }

@@ -8,7 +8,7 @@ import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
-import net.lenni0451.optconfig.utils.YamlNodeUtils;
+import net.lenni0451.optconfig.utils.YamlUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.nodes.MappingNode;
@@ -110,12 +110,12 @@ class ConfigSerializer {
                 if (option.getValidator() != null) deserializedValue = ReflectionUtils.invoke(option.getValidator(), sectionInstance, deserializedValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(unsafeCast(deserializedValue))));
             }
-            if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
-            YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
+            if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
+            YamlUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
             if (!option.isReloadable() && configLoader.getConfigOptions().isNotReloadableComment()) {
-                YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "This option is not reloadable.");
+                YamlUtils.appendComment(tuple, options.getCommentSpacing(), "This option is not reloadable.");
                 if (sectionIndex.getSubSections().containsKey(option)) {
-                    YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "This applies to all options in this section.");
+                    YamlUtils.appendComment(tuple, options.getCommentSpacing(), "This applies to all options in this section.");
                 }
             }
             section.add(tuple);
@@ -124,13 +124,13 @@ class ConfigSerializer {
             ConfigIndex configIndex = (ConfigIndex) sectionIndex;
             if (configIndex.getVersion() != OptConfig.DEFAULT_VERSION) {
                 NodeTuple tuple = new NodeTuple(configLoader.yaml.represent(OptConfig.CONFIG_VERSION_OPTION), configLoader.yaml.represent(configIndex.getVersion()));
-                if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
-                YamlNodeUtils.appendComment(tuple, options.getCommentSpacing(), "The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!");
+                if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
+                YamlUtils.appendComment(tuple, options.getCommentSpacing(), "The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!");
                 section.add(tuple);
             }
             if (configIndex.getHeader().length > 0) {
-                YamlNodeUtils.appendComment(rootNode, options.getCommentSpacing(), configIndex.getHeader());
-                YamlNodeUtils.appendComment(rootNode, options.getCommentSpacing(), "\n"); //Add an empty line after the header
+                YamlUtils.appendComment(rootNode, options.getCommentSpacing(), configIndex.getHeader());
+                YamlUtils.appendComment(rootNode, options.getCommentSpacing(), "\n"); //Add an empty line after the header
             }
         }
         return rootNode;

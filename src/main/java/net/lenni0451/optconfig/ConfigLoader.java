@@ -10,12 +10,9 @@ import net.lenni0451.optconfig.index.types.SectionIndex;
 import net.lenni0451.optconfig.provider.ConfigProvider;
 import net.lenni0451.optconfig.serializer.TypeSerializerList;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.LoaderOptions;
+import net.lenni0451.optconfig.utils.YamlUtils;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.MappingNode;
-import org.yaml.snakeyaml.representer.Representer;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -30,20 +27,13 @@ import java.util.Map;
  */
 public class ConfigLoader<C> {
 
+    final Yaml yaml = YamlUtils.createYaml();
     final Class<C> configClass;
-    final Yaml yaml;
     private final ConfigOptions configOptions = new ConfigOptions();
     private final TypeSerializerList<C> typeSerializers = new TypeSerializerList<>();
 
     public ConfigLoader(final Class<C> configClass) {
         this.configClass = configClass;
-
-        LoaderOptions loaderOptions = new LoaderOptions();
-        loaderOptions.setProcessComments(true); //Enable comment parsing
-        DumperOptions dumperOptions = new DumperOptions();
-        dumperOptions.setProcessComments(true); //Enable comment writing
-        dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); //Set the default flow style to block
-        this.yaml = new Yaml(new SafeConstructor(loaderOptions), new Representer(dumperOptions), dumperOptions); //Use safe constructor to prevent code execution
     }
 
     /**

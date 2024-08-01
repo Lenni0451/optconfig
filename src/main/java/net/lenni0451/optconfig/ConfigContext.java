@@ -2,7 +2,7 @@ package net.lenni0451.optconfig;
 
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.provider.ConfigProvider;
-import net.lenni0451.optconfig.utils.YamlNodeUtils;
+import net.lenni0451.optconfig.utils.YamlUtils;
 import org.yaml.snakeyaml.nodes.MappingNode;
 
 import java.io.IOException;
@@ -79,7 +79,7 @@ public class ConfigContext<C> {
         } else {
             //If the config should not be rewritten, copy over comments and formatting
             MappingNode readNode = (MappingNode) this.configLoader.yaml.compose(new StringReader(this.configProvider.load()));
-            YamlNodeUtils.copyValues(serializedSection, readNode);
+            YamlUtils.copyValues(serializedSection, readNode);
             this.configLoader.save(readNode, this.configProvider);
         }
     }
