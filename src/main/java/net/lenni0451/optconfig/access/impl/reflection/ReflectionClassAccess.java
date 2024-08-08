@@ -4,10 +4,9 @@ import net.lenni0451.optconfig.access.types.ClassAccess;
 import net.lenni0451.optconfig.access.types.ConstructorAccess;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
+import net.lenni0451.optconfig.utils.ArrayUtils;
 
 import java.lang.annotation.Annotation;
-import java.util.function.Function;
-import java.util.function.IntFunction;
 
 /**
  * A default implementation of {@link ClassAccess} using reflection.
@@ -15,9 +14,15 @@ import java.util.function.IntFunction;
 public class ReflectionClassAccess implements ClassAccess {
 
     protected final Class<?> clazz;
+    protected boolean reverseInnerClasses;
 
     public ReflectionClassAccess(final Class<?> clazz) {
+        this(clazz, false);
+    }
+
+    public ReflectionClassAccess(final Class<?> clazz, final boolean reverseInnerClasses) {
         this.clazz = clazz;
+        this.reverseInnerClasses = reverseInnerClasses;
     }
 
     @Override
@@ -27,33 +32,29 @@ public class ReflectionClassAccess implements ClassAccess {
 
     @Override
     public ConstructorAccess[] getConstructors() {
-        return this.map(this.clazz.getDeclaredConstructors(), ReflectionConstructorAccess::new, ReflectionConstructorAccess[]::new);
+        return ArrayUtils.map(this.clazz.getDeclaredConstructors(), ReflectionConstructorAccess::new, ReflectionConstructorAccess[]::new);
     }
 
     @Override
     public FieldAccess[] getFields() {
-        return this.map(this.clazz.getDeclaredFields(), ReflectionFieldAccess::new, ReflectionFieldAccess[]::new);
+        return ArrayUtils.map(this.clazz.getDeclaredFields(), ReflectionFieldAccess::new, ReflectionFieldAccess[]::new);
     }
 
     @Override
     public MethodAccess[] getMethods() {
-        return this.map(this.clazz.getDeclaredMethods(), ReflectionMethodAccess::new, ReflectionMethodAccess[]::new);
+        return ArrayUtils.map(this.clazz.getDeclaredMethods(), ReflectionMethodAccess::new, ReflectionMethodAccess[]::new);
     }
 
     @Override
     public ClassAccess[] getInnerClasses() {
-        return this.map(this.clazz.getDeclaredClasses(), ReflectionClassAccess::new, ReflectionClassAccess[]::new);
+        ClassAccess[] classAccesses = ArrayUtils.map(this.clazz.getDeclaredClasses(), ReflectionClassAccess::new, ReflectionClassAccess[]::new);
+        if (this.reverseInnerClasses) ArrayUtils.reverse(classAccesses);
+        return classAccesses;
     }
 
     @Override
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
         return this.clazz.getDeclaredAnnotation(annotationClass);
-    }
-
-    protected <I, O> O[] map(final I[] input, final Function<I, O> mapper, IntFunction<O[]> arrayCreator) {
-        O[] output = arrayCreator.apply(input.length);
-        for (int i = 0; i < input.length; i++) output[i] = mapper.apply(input[i]);
-        return output;
     }
 
 }
