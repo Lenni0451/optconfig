@@ -2,6 +2,7 @@ package net.lenni0451.optconfig.index.types;
 
 import lombok.ToString;
 import lombok.Value;
+import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.annotations.OptConfig;
 import net.lenni0451.optconfig.index.ConfigType;
 import net.lenni0451.optconfig.migrate.ConfigMigrator;
@@ -44,9 +45,9 @@ public class ConfigIndex extends SectionIndex {
         this.migrators.put(new MigratorIndex(from, to), migrator);
     }
 
-    public Migrator searchMigrator(final int from, final int to) {
+    public Migrator searchMigrator(final ConfigLoader<?> configLoader, final int from, final int to) {
         MigratorIndex index = new MigratorIndex(from, to);
-        if (this.migrators.containsKey(index)) return new Migrator(from, to, ReflectionUtils.instantiate(this.migrators.get(index)));
+        if (this.migrators.containsKey(index)) return new Migrator(from, to, ReflectionUtils.instantiate(configLoader, this.migrators.get(index)));
         //No matching migrator found, try to find the best fitting ones
         //The goal is getting from the current version to the target version
         //If multiple migrators are found, they must be applied in the correct order
@@ -68,7 +69,7 @@ public class ConfigIndex extends SectionIndex {
             } else {
                 //The next migrator was found
                 //Add it to the chain and try to find the next one
-                migratorChain.add(new Migrator(currentVersion[0], migrator.getKey().to, ReflectionUtils.instantiate(migrator.getValue())));
+                migratorChain.add(new Migrator(currentVersion[0], migrator.getKey().to, ReflectionUtils.instantiate(configLoader, migrator.getValue())));
                 currentVersion[0] = migrator.getKey().to;
             }
         }

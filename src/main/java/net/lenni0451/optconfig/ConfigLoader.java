@@ -57,11 +57,10 @@ public class ConfigLoader<C> {
      *
      * @param configProvider The config provider for loading and saving the config
      * @return The config context
-     * @throws IOException            If an I/O error occurs
-     * @throws IllegalAccessException If the config class or options are not accessible
+     * @throws IOException If an I/O error occurs
      */
-    public ConfigContext<C> load(final ConfigProvider configProvider) throws IOException, IllegalAccessException {
-        return this.load(ReflectionUtils.instantiate(this.configClass), configProvider);
+    public ConfigContext<C> load(final ConfigProvider configProvider) throws IOException {
+        return this.load(ReflectionUtils.instantiate(this, this.configClass), configProvider);
     }
 
     /**
@@ -71,11 +70,10 @@ public class ConfigLoader<C> {
      * @param config         The instance to store the values
      * @param configProvider The config provider for loading and saving the config
      * @return The config context
-     * @throws IOException            If an I/O error occurs
-     * @throws IllegalAccessException If the config class or options are not accessible
+     * @throws IOException If an I/O error occurs
      */
-    public ConfigContext<C> load(final C config, final ConfigProvider configProvider) throws IOException, IllegalAccessException {
-        SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, this.configClass);
+    public ConfigContext<C> load(final C config, final ConfigProvider configProvider) throws IOException {
+        SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, this.configClass, this.configOptions.getClassAccessFactory());
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
 
@@ -88,18 +86,17 @@ public class ConfigLoader<C> {
      *
      * @param configProvider The config provider for loading and saving the config
      * @return The config context
-     * @throws IOException            If an I/O error occurs
-     * @throws IllegalAccessException If the config class or options are not accessible
+     * @throws IOException If an I/O error occurs
      */
-    public ConfigContext<C> loadStatic(final ConfigProvider configProvider) throws IOException, IllegalAccessException {
-        SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, this.configClass);
+    public ConfigContext<C> loadStatic(final ConfigProvider configProvider) throws IOException {
+        SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, this.configClass, this.configOptions.getClassAccessFactory());
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
         this.parseSection(index, null, configProvider, false);
         return new ConfigContext<>(this, null, configProvider, (ConfigIndex) index);
     }
 
-    void parseSection(final SectionIndex sectionIndex, @Nullable final C instance, final ConfigProvider configProvider, final boolean reload) throws IOException, IllegalAccessException {
+    void parseSection(final SectionIndex sectionIndex, @Nullable final C instance, final ConfigProvider configProvider, final boolean reload) throws IOException {
         if (configProvider.exists()) {
             //If the file exists, load the content and deserialize it to a map
             //If differences are found, load the config again as Nodes and apply the differences, then save the config again

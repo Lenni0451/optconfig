@@ -14,7 +14,7 @@ import java.util.Map;
 @ApiStatus.Internal
 class DiffMerger {
 
-    static <C> MappingNode merge(final ConfigLoader<C> configLoader, final String fileContent, final SectionIndex sectionIndex, final ConfigDiff configDiff, @Nullable final C instance) throws IllegalAccessException {
+    static <C> MappingNode merge(final ConfigLoader<C> configLoader, final String fileContent, final SectionIndex sectionIndex, final ConfigDiff configDiff, @Nullable final C instance) {
         //Some values in the config have changed
         //Load the config as Nodes and apply the differences to keep comments and formatting
         MappingNode serializedNode = ConfigSerializer.serializeSection(configLoader, instance, sectionIndex, instance); //Used for copying over nodes

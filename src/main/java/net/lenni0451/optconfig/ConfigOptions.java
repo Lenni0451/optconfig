@@ -1,6 +1,9 @@
 package net.lenni0451.optconfig;
 
 import lombok.Getter;
+import net.lenni0451.optconfig.access.ClassAccessFactory;
+import net.lenni0451.optconfig.access.impl.reflection.ReflectionClassAccess;
+import net.lenni0451.optconfig.access.types.ClassAccess;
 import net.lenni0451.optconfig.annotations.NotReloadable;
 
 /**
@@ -16,6 +19,7 @@ public class ConfigOptions {
     private boolean rewriteConfig = false;
     private boolean spaceBetweenOptions = true;
     private boolean notReloadableComment = true;
+    private ClassAccessFactory classAccessFactory = ReflectionClassAccess::new;
 
     /**
      * Set if invalid options should be reset to their default value.<br>
@@ -102,6 +106,18 @@ public class ConfigOptions {
      */
     public ConfigOptions setNotReloadableComment(final boolean value) {
         this.notReloadableComment = value;
+        return this;
+    }
+
+    /**
+     * Set the factory for the {@link ClassAccess} instances.<br>
+     * Default: {@link ReflectionClassAccess}
+     *
+     * @param classAccessFactory The new factory
+     * @return The config options
+     */
+    public ConfigOptions setClassAccessFactory(final ClassAccessFactory classAccessFactory) {
+        this.classAccessFactory = classAccessFactory;
         return this;
     }
 

@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig;
 
+import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.provider.ConfigProvider;
 import net.lenni0451.optconfig.utils.YamlUtils;
@@ -7,7 +8,6 @@ import org.yaml.snakeyaml.nodes.MappingNode;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.lang.reflect.Field;
 
 public class ConfigContext<C> {
 
@@ -27,15 +27,14 @@ public class ConfigContext<C> {
 
     private void setContextField() {
         try {
-            Field contextField = null;
-            for (Field field : this.configInstance.getClass().getDeclaredFields()) {
+            FieldAccess contextField = null;
+            for (FieldAccess field : this.configLoader.getConfigOptions().getClassAccessFactory().create(this.configLoader.configClass).getFields()) {
                 if (!this.configIndex.getConfigType().matches(field.getModifiers())) continue;
                 if (!ConfigContext.class.isAssignableFrom(field.getType())) continue;
                 contextField = field;
-                contextField.setAccessible(true);
                 break;
             }
-            if (contextField != null) contextField.set(this.configInstance, this);
+            if (contextField != null) contextField.setValue(this.configInstance, this);
         } catch (Throwable ignored) {
             //Not critical
         }
