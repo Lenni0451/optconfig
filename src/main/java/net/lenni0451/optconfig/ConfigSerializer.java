@@ -16,9 +16,7 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 
@@ -129,8 +127,18 @@ class ConfigSerializer {
                 section.add(tuple);
             }
             if (configIndex.getHeader().length > 0) {
-                YamlUtils.appendComment(rootNode, options.getCommentSpacing(), configIndex.getHeader());
-                YamlUtils.appendComment(rootNode, options.getCommentSpacing(), "\n"); //Add an empty line after the header
+                List<String> lines = new ArrayList<>();
+                for (String line : configIndex.getHeader()) {
+                    String[] parts = line.split("\n", -1);
+                    int end = parts.length;
+                    while (end > 0 && parts[end - 1].isEmpty()) end--;
+                    if (end <= 0) end = parts.length; //If the all lines are empty assume the user wants an empty line
+                    Collections.addAll(lines, Arrays.copyOfRange(parts, 0, end));
+                }
+                if (!lines.isEmpty()) {
+                    YamlUtils.appendComment(rootNode, options.getCommentSpacing(), lines.toArray(new String[0]));
+                    YamlUtils.appendComment(rootNode, options.getCommentSpacing(), "\n"); //Add an empty line after the header
+                }
             }
         }
         return rootNode;
