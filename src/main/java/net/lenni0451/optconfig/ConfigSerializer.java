@@ -26,7 +26,7 @@ class ConfigSerializer {
     static <C> ConfigDiff deserializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance, final Map<String, Object> values, final boolean reload, ConfigDiff configDiff) {
         if (sectionIndex instanceof ConfigIndex) {
             configDiff = ConfigDiff.diff(sectionIndex, values);
-            runMigration(configLoader, (ConfigIndex) sectionIndex, configDiff, values);
+            runMigration(configLoader, (ConfigIndex) sectionIndex, values);
         }
 
         for (ConfigOption option : sectionIndex.getOptions()) {
@@ -58,23 +58,9 @@ class ConfigSerializer {
         return configDiff;
     }
 
-    private static void runMigration(final ConfigLoader<?> configLoader, final ConfigIndex configIndex, final ConfigDiff configDiff, final Map<String, Object> values) {
+    private static void runMigration(final ConfigLoader<?> configLoader, final ConfigIndex configIndex, final Map<String, Object> values) {
         int latestVersion = configIndex.getVersion();
         int currentVersion = (int) values.getOrDefault(OptConfig.CONFIG_VERSION_OPTION, OptConfig.DEFAULT_VERSION);
-        boolean hasVersionField = values.containsKey(OptConfig.CONFIG_VERSION_OPTION);
-        if (latestVersion != OptConfig.DEFAULT_VERSION && !hasVersionField) {
-            //Add the version key if it's missing
-            configDiff.getAddedKeys().add(OptConfig.CONFIG_VERSION_OPTION);
-        } else if (currentVersion != latestVersion) {
-            if (hasVersionField) {
-                //Replace the version because it's outdated
-                configDiff.getInvalidKeys().add(OptConfig.CONFIG_VERSION_OPTION);
-            } else {
-                //The config is outdated and the version key is missing
-                configDiff.getAddedKeys().add(OptConfig.CONFIG_VERSION_OPTION);
-            }
-        }
-
         if (currentVersion > latestVersion) {
             //The config file has a newer version than the application
             //Downgrading is not supported
@@ -120,12 +106,6 @@ class ConfigSerializer {
         }
         if (sectionIndex instanceof ConfigIndex) {
             ConfigIndex configIndex = (ConfigIndex) sectionIndex;
-            if (configIndex.getVersion() != OptConfig.DEFAULT_VERSION) {
-                NodeTuple tuple = new NodeTuple(configLoader.yaml.represent(OptConfig.CONFIG_VERSION_OPTION), configLoader.yaml.represent(configIndex.getVersion()));
-                if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
-                YamlUtils.appendComment(tuple, options.getCommentSpacing(), "The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!");
-                section.add(tuple);
-            }
             if (configIndex.getHeader().length > 0) {
                 List<String> lines = new ArrayList<>();
                 for (String line : configIndex.getHeader()) {
