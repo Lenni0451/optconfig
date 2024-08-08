@@ -9,6 +9,7 @@ public interface ClassAccess {
 
     /**
      * @return All constructors of the class
+     * @see Class#getDeclaredConstructors()
      */
     ConstructorAccess[] getConstructors();
 
@@ -19,7 +20,7 @@ public interface ClassAccess {
      * @return The constructor
      * @throws IllegalArgumentException If no constructor with the given parameter types was found
      */
-    default ConstructorAccess getConstructor(Class<?>... parameterTypes) {
+    default ConstructorAccess getConstructor(final Class<?>... parameterTypes) {
         for (ConstructorAccess constructor : this.getConstructors()) {
             if (Arrays.equals(constructor.getParameterTypes(), parameterTypes)) {
                 return constructor;
@@ -30,11 +31,13 @@ public interface ClassAccess {
 
     /**
      * @return All fields of the class
+     * @see Class#getDeclaredFields()
      */
     FieldAccess[] getFields();
 
     /**
      * @return All methods of the class
+     * @see Class#getDeclaredMethods()
      */
     MethodAccess[] getMethods();
 
