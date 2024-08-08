@@ -1,11 +1,17 @@
 package net.lenni0451.optconfig.access.types;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
 /**
  * A class which can be accessed by optconfig (e.g. using reflection).
  */
 public interface ClassAccess {
+
+    /**
+     * @return The class
+     */
+    Class<?> getClazz();
 
     /**
      * @return All constructors of the class
@@ -40,5 +46,21 @@ public interface ClassAccess {
      * @see Class#getDeclaredMethods()
      */
     MethodAccess[] getMethods();
+
+    /**
+     * @return All inner classes of the class
+     * @see Class#getDeclaredClasses()
+     */
+    ClassAccess[] getInnerClasses();
+
+    /**
+     * Get an annotation of the class.
+     *
+     * @param annotationClass The class of the annotation
+     * @param <T>             The type of the annotation
+     * @return The annotation or null if the class does not have this annotation
+     * @see Class#getDeclaredAnnotation(Class)
+     */
+    <T extends Annotation> T getAnnotation(final Class<T> annotationClass);
 
 }

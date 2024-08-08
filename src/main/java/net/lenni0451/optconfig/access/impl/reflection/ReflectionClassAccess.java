@@ -5,6 +5,7 @@ import net.lenni0451.optconfig.access.types.ConstructorAccess;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
 /**
@@ -12,10 +13,15 @@ import java.util.Arrays;
  */
 public class ReflectionClassAccess implements ClassAccess {
 
-    private final Class<?> clazz;
+    protected final Class<?> clazz;
 
     public ReflectionClassAccess(final Class<?> clazz) {
         this.clazz = clazz;
+    }
+
+    @Override
+    public Class<?> getClazz() {
+        return this.clazz;
     }
 
     @Override
@@ -31,6 +37,16 @@ public class ReflectionClassAccess implements ClassAccess {
     @Override
     public MethodAccess[] getMethods() {
         return Arrays.stream(this.clazz.getDeclaredMethods()).map(ReflectionMethodAccess::new).toArray(MethodAccess[]::new);
+    }
+
+    @Override
+    public ClassAccess[] getInnerClasses() {
+        return Arrays.stream(this.clazz.getDeclaredClasses()).map(ReflectionClassAccess::new).toArray(ClassAccess[]::new);
+    }
+
+    @Override
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        return this.clazz.getDeclaredAnnotation(annotationClass);
     }
 
 }

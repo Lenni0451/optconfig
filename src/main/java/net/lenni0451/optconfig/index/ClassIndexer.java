@@ -5,6 +5,7 @@ import net.lenni0451.optconfig.access.types.ClassAccess;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
 import net.lenni0451.optconfig.annotations.*;
+import net.lenni0451.optconfig.annotations.internal.DummyNotReloadable;
 import net.lenni0451.optconfig.annotations.internal.Migrators;
 import net.lenni0451.optconfig.exceptions.InvalidValidatorException;
 import net.lenni0451.optconfig.exceptions.UnknownDependencyException;
@@ -24,41 +25,41 @@ import java.util.Map;
 public class ClassIndexer {
 
     public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccessFactory classAccessFactory) {
+        ClassAccess classAccess = classAccessFactory.create(clazz);
         SectionIndex sectionIndex;
-        if (clazz.getDeclaredAnnotation(OptConfig.class) != null) {
-            OptConfig optConfig = clazz.getDeclaredAnnotation(OptConfig.class);
+        if (classAccess.getAnnotation(OptConfig.class) != null) {
+            OptConfig optConfig = classAccess.getAnnotation(OptConfig.class);
             ConfigIndex configIndex = new ConfigIndex(configType, clazz, optConfig);
-            loadMigrators(clazz, configIndex);
+            loadMigrators(classAccess, configIndex);
             sectionIndex = configIndex;
-        } else if (clazz.getDeclaredAnnotation(Section.class) != null) {
+        } else if (classAccess.getAnnotation(Section.class) != null) {
             sectionIndex = new SectionIndex(configType, clazz);
         } else {
             throw new IllegalArgumentException("The class " + clazz.getName() + " is not annotated with @OptConfig or @Section");
         }
-        indexFields(sectionIndex, classAccessFactory);
+        indexFields(sectionIndex, classAccess, classAccessFactory);
         addInMemoryFields(sectionIndex);
         return sectionIndex;
     }
 
-    private static void loadMigrators(final Class<?> clazz, final ConfigIndex configIndex) {
-        Migrators migrators = clazz.getDeclaredAnnotation(Migrators.class);
+    private static void loadMigrators(final ClassAccess classAccess, final ConfigIndex configIndex) {
+        Migrators migrators = classAccess.getAnnotation(Migrators.class);
         if (migrators != null) {
             for (Migrator migrator : migrators.value()) {
                 configIndex.addMigrator(migrator.from(), migrator.to(), migrator.migrator());
             }
         }
 
-        Migrator migrator = clazz.getDeclaredAnnotation(Migrator.class);
+        Migrator migrator = classAccess.getAnnotation(Migrator.class);
         if (migrator != null) {
             configIndex.addMigrator(migrator.from(), migrator.to(), migrator.migrator());
         }
     }
 
-    private static void indexFields(final SectionIndex sectionIndex, final ClassAccessFactory classAccessFactory) {
+    private static void indexFields(final SectionIndex sectionIndex, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory) {
         Class<?> clazz = sectionIndex.getClazz();
-        ClassAccess classAccess = classAccessFactory.create(clazz);
         Map<String, MethodAccess> validatorMethods = new HashMap<>();
-        for (MethodAccess method : classAccess.getMethods()) {
+        for (MethodAccess method : classAccess.getMethods()) { //Index all validator method
             if (!sectionIndex.getConfigType().matches(method.getModifiers())) continue;
             Validator validator = method.getAnnotation(Validator.class);
             if (validator == null) continue;
@@ -66,7 +67,7 @@ public class ClassIndexer {
             if (!method.getReturnType().equals(method.getParameterTypes()[0])) throw new InvalidValidatorException(clazz, method, "does not return the same type as the parameter");
             for (String option : validator.value()) validatorMethods.put(option, method);
         }
-        for (FieldAccess field : classAccess.getFields()) {
+        for (FieldAccess field : classAccess.getFields()) { //Index all options
             if (!sectionIndex.getConfigType().matches(field.getModifiers())) continue;
             Option option = field.getAnnotation(Option.class);
             if (option == null) continue;
@@ -80,7 +81,30 @@ public class ClassIndexer {
             sectionIndex.addOption(configOption);
 
             Section section = field.getType().getDeclaredAnnotation(Section.class);
-            if (section != null) sectionIndex.addSubSection(configOption, indexClass(sectionIndex.getConfigType(), field.getType(), classAccessFactory));
+            if (section != null) {
+                if (!section.name().isEmpty() || section.description().length != 0 || !section.reloadable()) {
+                    throw new IllegalStateException("Sections included using fields must not have a name, description or reloadable state");
+                }
+                sectionIndex.addSubSection(configOption, indexClass(sectionIndex.getConfigType(), field.getType(), classAccessFactory));
+            }
+        }
+        if (sectionIndex.getConfigType().equals(ConfigType.STATIC)) {
+            for (ClassAccess innerClass : classAccess.getInnerClasses()) { //Index all independent sections
+                Section section = innerClass.getAnnotation(Section.class);
+                if (section == null) continue;
+                if (section.name().isEmpty()) continue; //Not an independent section
+
+                ConfigOption subSectionOption = new ConfigOption(
+                        new DummyFieldAccess(section.name(), innerClass.getClazz(), null),
+                        new DummyOption(section.name()),
+                        new DummyDescription(section.description()),
+                        section.reloadable() ? null : new DummyNotReloadable(),
+                        null,
+                        Collections.emptyMap()
+                );
+                sectionIndex.addOption(subSectionOption);
+                sectionIndex.addSubSection(subSectionOption, indexClass(sectionIndex.getConfigType(), innerClass.getClazz(), classAccessFactory));
+            }
         }
         if (!validatorMethods.isEmpty()) throw new InvalidValidatorException(clazz, validatorMethods.values().iterator().next(), "has no corresponding option");
         for (ConfigOption option : sectionIndex.getOptions()) {

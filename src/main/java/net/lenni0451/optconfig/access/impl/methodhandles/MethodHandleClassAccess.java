@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.access.impl.methodhandles;
 
+import net.lenni0451.optconfig.access.impl.reflection.ReflectionClassAccess;
 import net.lenni0451.optconfig.access.types.ClassAccess;
 import net.lenni0451.optconfig.access.types.ConstructorAccess;
 import net.lenni0451.optconfig.access.types.FieldAccess;
@@ -11,14 +12,13 @@ import java.util.Arrays;
 /**
  * A default implementation of {@link ClassAccess} using method handles.
  */
-public class MethodHandleClassAccess implements ClassAccess {
+public class MethodHandleClassAccess extends ReflectionClassAccess {
 
     private final MethodHandles.Lookup lookup;
-    private final Class<?> clazz;
 
     public MethodHandleClassAccess(final MethodHandles.Lookup lookup, final Class<?> clazz) {
+        super(clazz);
         this.lookup = lookup;
-        this.clazz = clazz;
     }
 
     @Override
