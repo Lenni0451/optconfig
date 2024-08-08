@@ -6,7 +6,8 @@ import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 
 /**
  * A default implementation of {@link ClassAccess} using reflection.
@@ -26,27 +27,33 @@ public class ReflectionClassAccess implements ClassAccess {
 
     @Override
     public ConstructorAccess[] getConstructors() {
-        return Arrays.stream(this.clazz.getDeclaredConstructors()).map(ReflectionConstructorAccess::new).toArray(ConstructorAccess[]::new);
+        return this.map(this.clazz.getDeclaredConstructors(), ReflectionConstructorAccess::new, ReflectionConstructorAccess[]::new);
     }
 
     @Override
     public FieldAccess[] getFields() {
-        return Arrays.stream(this.clazz.getDeclaredFields()).map(ReflectionFieldAccess::new).toArray(FieldAccess[]::new);
+        return this.map(this.clazz.getDeclaredFields(), ReflectionFieldAccess::new, ReflectionFieldAccess[]::new);
     }
 
     @Override
     public MethodAccess[] getMethods() {
-        return Arrays.stream(this.clazz.getDeclaredMethods()).map(ReflectionMethodAccess::new).toArray(MethodAccess[]::new);
+        return this.map(this.clazz.getDeclaredMethods(), ReflectionMethodAccess::new, ReflectionMethodAccess[]::new);
     }
 
     @Override
     public ClassAccess[] getInnerClasses() {
-        return Arrays.stream(this.clazz.getDeclaredClasses()).map(ReflectionClassAccess::new).toArray(ClassAccess[]::new);
+        return this.map(this.clazz.getDeclaredClasses(), ReflectionClassAccess::new, ReflectionClassAccess[]::new);
     }
 
     @Override
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
         return this.clazz.getDeclaredAnnotation(annotationClass);
+    }
+
+    protected <I, O> O[] map(final I[] input, final Function<I, O> mapper, IntFunction<O[]> arrayCreator) {
+        O[] output = arrayCreator.apply(input.length);
+        for (int i = 0; i < input.length; i++) output[i] = mapper.apply(input[i]);
+        return output;
     }
 
 }
