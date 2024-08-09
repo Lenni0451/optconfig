@@ -2,6 +2,8 @@ package net.lenni0451.optconfig;
 
 import net.lenni0451.optconfig.provider.ConfigProvider;
 import net.lenni0451.optconfig.utils.YamlUtils;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.nodes.MappingNode;
 
@@ -9,16 +11,22 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A config loader for directly loading and saving maps.
  */
 public class MapConfigLoader {
 
-    private final Yaml yaml = YamlUtils.createYaml();
+    private final Yaml yaml;
     private final ConfigProvider configProvider;
 
     public MapConfigLoader(final ConfigProvider configProvider) {
+        this(configProvider, loaderOptions -> {}, dumperOptions -> {});
+    }
+
+    public MapConfigLoader(final ConfigProvider configProvider, final Consumer<LoaderOptions> loaderOptionsConsumer, final Consumer<DumperOptions> dumperOptionsConsumer) {
+        this.yaml = YamlUtils.createYaml(loaderOptionsConsumer, dumperOptionsConsumer);
         this.configProvider = configProvider;
     }
 

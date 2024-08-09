@@ -17,12 +17,17 @@ import java.util.function.Consumer;
 
 public class YamlUtils {
 
-    public static Yaml createYaml() {
+    public static Yaml createYaml(final Consumer<LoaderOptions> loaderOptionsConsumer, final Consumer<DumperOptions> dumperOptionsConsumer) {
         LoaderOptions loaderOptions = new LoaderOptions();
+        loaderOptionsConsumer.accept(loaderOptions);
         loaderOptions.setProcessComments(true); //Enable comment parsing
+
         DumperOptions dumperOptions = new DumperOptions();
-        dumperOptions.setProcessComments(true); //Enable comment writing
+        dumperOptions.setWidth(Integer.MAX_VALUE); //Disable line wrapping
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); //Set the default flow style to block
+        dumperOptionsConsumer.accept(dumperOptions);
+        dumperOptions.setProcessComments(true); //Enable comment writing
+
         return new Yaml(new SafeConstructor(loaderOptions), new Representer(dumperOptions), dumperOptions); //Use safe constructor to prevent code execution
     }
 

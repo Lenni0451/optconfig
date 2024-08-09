@@ -11,6 +11,8 @@ import net.lenni0451.optconfig.provider.ConfigProvider;
 import net.lenni0451.optconfig.serializer.TypeSerializerList;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
 import net.lenni0451.optconfig.utils.YamlUtils;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.nodes.MappingNode;
 
@@ -18,6 +20,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * The config loader providing methods to load instanced and static configs.<br>
@@ -27,13 +30,20 @@ import java.util.Map;
  */
 public class ConfigLoader<C> {
 
-    final Yaml yaml = YamlUtils.createYaml();
+    final Yaml yaml;
     final Class<C> configClass;
-    private final ConfigOptions configOptions = new ConfigOptions();
-    private final TypeSerializerList<C> typeSerializers = new TypeSerializerList<>();
+    private final ConfigOptions configOptions;
+    private final TypeSerializerList<C> typeSerializers;
 
     public ConfigLoader(final Class<C> configClass) {
+        this(configClass, loaderOptions -> {}, dumperOptions -> {});
+    }
+
+    public ConfigLoader(final Class<C> configClass, final Consumer<LoaderOptions> loaderOptionsConsumer, final Consumer<DumperOptions> dumperOptionsConsumer) {
+        this.yaml = YamlUtils.createYaml(loaderOptionsConsumer, dumperOptionsConsumer);
         this.configClass = configClass;
+        this.configOptions = new ConfigOptions();
+        this.typeSerializers = new TypeSerializerList<>();
     }
 
     /**
