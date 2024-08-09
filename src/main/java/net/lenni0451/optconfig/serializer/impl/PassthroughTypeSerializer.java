@@ -16,7 +16,7 @@ public class PassthroughTypeSerializer<C> extends ConfigTypeSerializer<C, Object
     }
 
     @Override
-    public Object deserialize(Class<Object> typeClass, Object serializedObject) {
+    public Object deserialize(Object serializedObject) {
         return serializedObject;
     }
 

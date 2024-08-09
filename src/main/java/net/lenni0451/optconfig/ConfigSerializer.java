@@ -34,17 +34,18 @@ class ConfigSerializer {
             if (reload && !option.isReloadable()) continue; //Skip not reloadable options, but only if it's a reload operation
             try {
                 Object value = values.get(option.getName());
+                Object optionValue = option.getFieldAccess().getValue(sectionInstance);
+                Class<?> optionType = option.getFieldAccess().getType();
                 if (sectionIndex.getSubSections().containsKey(option)) {
-                    Object optionValue = option.getFieldAccess().getValue(sectionInstance);
                     if (optionValue == null) {
                         //Config sections don't have to be instantiated by the user
-                        optionValue = ReflectionUtils.instantiate(configLoader, option.getFieldAccess().getType());
+                        optionValue = ReflectionUtils.instantiate(configLoader, optionType);
                         option.getFieldAccess().setValue(sectionInstance, optionValue);
                     }
                     deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), reload, configDiff.getSubSections().get(option.getName()));
                 } else {
                     ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
-                    Object deserializedValue = typeSerializer.deserialize(unsafeCast(option.getFieldAccess().getType()), value);
+                    Object deserializedValue = typeSerializer.deserialize(unsafeCast(optionType), unsafeCast(optionValue), value);
                     if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
                     option.getFieldAccess().setValue(sectionInstance, deserializedValue);
                 }

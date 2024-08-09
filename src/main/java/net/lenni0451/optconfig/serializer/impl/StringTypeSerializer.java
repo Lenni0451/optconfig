@@ -34,7 +34,7 @@ public class StringTypeSerializer<C> extends ConfigTypeSerializer<C, String> {
     }
 
     @Override
-    public String deserialize(Class<String> typeClass, Object serializedObject) {
+    public String deserialize(Object serializedObject) {
         if (serializedObject == null) {
             return null;
         } else if (serializedObject instanceof String) {

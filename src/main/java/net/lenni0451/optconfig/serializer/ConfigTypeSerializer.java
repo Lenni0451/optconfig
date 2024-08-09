@@ -20,11 +20,37 @@ public abstract class ConfigTypeSerializer<C, T> {
      * Deserializes the given yaml object to the type {@code T}.<br>
      * See {@link Tag} for the possible types.
      *
+     * @param serializedObject The object to deserialize
+     * @return The deserialized object
+     */
+    public T deserialize(final Object serializedObject) {
+        throw new UnsupportedOperationException("You need to override this method or one of the other deserialize methods");
+    }
+
+    /**
+     * Deserializes the given yaml object to the type {@code T}.<br>
+     * See {@link Tag} for the possible types.
+     *
      * @param typeClass        The class of the type to deserialize
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
-    public abstract T deserialize(final Class<T> typeClass, final Object serializedObject);
+    public T deserialize(final Class<T> typeClass, final Object serializedObject) {
+        return this.deserialize(serializedObject);
+    }
+
+    /**
+     * Deserializes the given yaml object to the type {@code T}.<br>
+     * See {@link Tag} for the possible types.
+     *
+     * @param typeClass        The class of the type to deserialize
+     * @param defaultValue     The default value of the option. <b>Will be the last value on config reload</b>
+     * @param serializedObject The object to deserialize
+     * @return The deserialized object
+     */
+    public T deserialize(final Class<T> typeClass, final T defaultValue, final Object serializedObject) {
+        return this.deserialize(typeClass, serializedObject);
+    }
 
     /**
      * Serializes the given object to a yaml object.<br>
