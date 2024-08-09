@@ -44,11 +44,11 @@ public abstract class ConfigTypeSerializer<C, T> {
      * See {@link Tag} for the possible types.
      *
      * @param typeClass        The class of the type to deserialize
-     * @param defaultValue     The default value of the option. <b>Will be the last value on config reload</b>
+     * @param currentValue     The last value of the option (default value on load, last value on reload)
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
-    public T deserialize(final Class<T> typeClass, final T defaultValue, final Object serializedObject) {
+    public T deserialize(final Class<T> typeClass, final T currentValue, final Object serializedObject) {
         return this.deserialize(typeClass, serializedObject);
     }
 
