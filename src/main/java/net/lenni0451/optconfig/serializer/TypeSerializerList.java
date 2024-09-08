@@ -1,13 +1,8 @@
 package net.lenni0451.optconfig.serializer;
 
-import net.lenni0451.optconfig.serializer.impl.GenericEnumSerializer;
-import net.lenni0451.optconfig.serializer.impl.GenericListSerializer;
-import net.lenni0451.optconfig.serializer.impl.GenericTypeSerializer;
-import net.lenni0451.optconfig.serializer.impl.StringTypeSerializer;
+import net.lenni0451.optconfig.serializer.impl.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
@@ -29,8 +24,8 @@ public class TypeSerializerList<C> {
 
         this.add(String.class, config -> new StringTypeSerializer<>(config, false)); //A passthrough serializer for strings
         this.add(List.class, config -> new GenericListSerializer<>(config)); //A generic serializer for lists
+        this.add(Map.class, config -> new GenericMapSerializer<>(config)); //A generic serializer for maps
         this.add(Enum.class, config -> new GenericEnumSerializer<>(config)); //A generic enum serializer that converts strings to enum. The names are case-insensitive
-        this.add(Object.class, config -> new GenericTypeSerializer<>(config)); //The default type serializer if no other is found (also handles arrays)
     }
 
     public <T> void add(final Class<T> type, final Function<C, ConfigTypeSerializer<C, T>> serializerSupplier) {
@@ -39,13 +34,20 @@ public class TypeSerializerList<C> {
 
     public <T> ConfigTypeSerializer<C, T> get(final C config, final Class<T> type) {
         Class<?> currentType = type;
+        Set<Class<?>> interfaces = new LinkedHashSet<>();
         do {
             if (this.serializers.containsKey(currentType)) {
                 return unsafeCast(this.serializers.get(currentType).apply(config));
             }
+            Collections.addAll(interfaces, currentType.getInterfaces());
             currentType = currentType.getSuperclass();
         } while (currentType != null);
-        return unsafeCast(this.serializers.get(Object.class).apply(config));
+        for (Class<?> itf : interfaces) {
+            if (this.serializers.containsKey(itf)) {
+                return unsafeCast(this.serializers.get(itf).apply(config));
+            }
+        }
+        return unsafeCast(new GenericTypeSerializer<>(config));
     }
 
 }

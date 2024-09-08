@@ -1,6 +1,19 @@
 package net.lenni0451.optconfig.utils;
 
+import java.util.Collection;
+
 public class ClassUtils {
+
+    public static Class<?> getCollectionType(final Collection<?> collection) {
+        if (collection == null || collection.isEmpty()) return Object.class;
+        Class<?> type = null;
+        for (Object o : collection) {
+            if (o == null) continue;
+            type = ClassUtils.getCommonType(type, o.getClass());
+        }
+        if (type == null) return Object.class;
+        return type;
+    }
 
     public static Class<?> getCommonType(final Class<?> type1, final Class<?> type2) {
         if (type1 == null && type2 == null) return Object.class;

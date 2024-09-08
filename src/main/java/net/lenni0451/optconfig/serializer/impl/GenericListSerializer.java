@@ -27,7 +27,7 @@ public class GenericListSerializer<C> extends ConfigTypeSerializer<C, List> {
         if (serializedObject == null) return null;
         if (!(serializedObject instanceof List)) throw new InvalidSerializedObjectException(List.class, serializedObject.getClass());
 
-        Class<?> listType = this.getListType(currentValue);
+        Class<?> listType = ClassUtils.getCollectionType(currentValue);
         List list = (List) serializedObject;
         List newList = new ArrayList(list.size());
         for (int i = 0; i < list.size(); i++) {
@@ -44,7 +44,7 @@ public class GenericListSerializer<C> extends ConfigTypeSerializer<C, List> {
     @Override
     public Object serialize(TypeSerializerList<C> typeSerializers, Class<List> typeClass, List object) {
         if (object == null) return null;
-        Class<?> listType = this.getListType(object);
+        Class<?> listType = ClassUtils.getCollectionType(object);
         List newList = new ArrayList(object.size());
         for (Object value : object) {
             Class<?> componentType = value == null ? listType : value.getClass();
@@ -53,17 +53,6 @@ public class GenericListSerializer<C> extends ConfigTypeSerializer<C, List> {
             newList.add(typeSerializer.serialize(typeSerializers, unsafeCast(componentType), unsafeCast(value)));
         }
         return newList;
-    }
-
-    private Class<?> getListType(final List list) {
-        if (list == null || list.isEmpty()) return Object.class;
-        Class<?> type = null;
-        for (Object o : list) {
-            if (o == null) continue;
-            type = ClassUtils.getCommonType(type, o.getClass());
-        }
-        if (type == null) return Object.class;
-        return type;
     }
 
 }
