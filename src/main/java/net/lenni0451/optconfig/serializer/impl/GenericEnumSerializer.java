@@ -11,6 +11,7 @@ import java.util.Locale;
  *
  * @param <C> The type of the config instance
  */
+@SuppressWarnings("rawtypes")
 public class GenericEnumSerializer<C> extends ConfigTypeSerializer<C, Enum> {
 
     public GenericEnumSerializer(final C config) {
