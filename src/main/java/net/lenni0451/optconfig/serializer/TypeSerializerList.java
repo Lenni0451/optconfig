@@ -1,8 +1,8 @@
 package net.lenni0451.optconfig.serializer;
 
 import net.lenni0451.optconfig.serializer.impl.GenericEnumSerializer;
+import net.lenni0451.optconfig.serializer.impl.GenericListSerializer;
 import net.lenni0451.optconfig.serializer.impl.GenericTypeSerializer;
-import net.lenni0451.optconfig.serializer.impl.ListSerializer;
 import net.lenni0451.optconfig.serializer.impl.StringTypeSerializer;
 
 import java.util.HashMap;
@@ -28,7 +28,7 @@ public class TypeSerializerList<C> {
         this.serializers = new HashMap<>();
 
         this.add(String.class, config -> new StringTypeSerializer<>(config, false)); //A passthrough serializer for strings
-        this.add(List.class, config -> new ListSerializer<>(config)); //A generic serializer for lists
+        this.add(List.class, config -> new GenericListSerializer<>(config)); //A generic serializer for lists
         this.add(Enum.class, config -> new GenericEnumSerializer<>(config)); //A generic enum serializer that converts strings to enum. The names are case-insensitive
         this.add(Object.class, config -> new GenericTypeSerializer<>(config)); //The default type serializer if no other is found (also handles arrays)
     }

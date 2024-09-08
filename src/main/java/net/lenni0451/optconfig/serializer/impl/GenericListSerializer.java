@@ -16,9 +16,9 @@ import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
  * @param <C> The type of the config instance
  */
 @SuppressWarnings("rawtypes")
-public class ListSerializer<C> extends ConfigTypeSerializer<C, List> {
+public class GenericListSerializer<C> extends ConfigTypeSerializer<C, List> {
 
-    public ListSerializer(final C config) {
+    public GenericListSerializer(final C config) {
         super(config);
     }
 
