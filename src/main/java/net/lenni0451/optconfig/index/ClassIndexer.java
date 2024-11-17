@@ -74,7 +74,8 @@ public class ClassIndexer {
             Description description = field.getAnnotation(Description.class);
             NotReloadable notReloadable = field.getAnnotation(NotReloadable.class);
             TypeSerializer typeSerializer = field.getAnnotation(TypeSerializer.class);
-            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, validatorMethods);
+            Hidden hidden = field.getAnnotation(Hidden.class);
+            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, validatorMethods);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }
@@ -100,6 +101,7 @@ public class ClassIndexer {
                         new DummyDescription(section.description()),
                         section.reloadable() ? null : new DummyNotReloadable(),
                         null,
+                        null,
                         Collections.emptyMap()
                 );
                 sectionIndex.addOption(subSectionOption);
@@ -123,7 +125,8 @@ public class ClassIndexer {
                 configIndex.addOption(new ConfigOption(
                         new DummyFieldAccess(OptConfig.CONFIG_VERSION_OPTION, int.class, configIndex.getVersion()),
                         new DummyOption(OptConfig.CONFIG_VERSION_OPTION),
-                        new DummyDescription("The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE CAN BREAK THE CONFIG FILE!"),
+                        new DummyDescription("The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE WILL BREAK THE CONFIG FILE!"),
+                        null,
                         null,
                         null,
                         Collections.emptyMap()
