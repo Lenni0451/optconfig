@@ -17,7 +17,7 @@ public class ReflectionClassAccess implements ClassAccess {
     protected boolean reverseInnerClasses;
 
     public ReflectionClassAccess(final Class<?> clazz) {
-        this(clazz, false);
+        this(clazz, true);
     }
 
     public ReflectionClassAccess(final Class<?> clazz, final boolean reverseInnerClasses) {
