@@ -80,7 +80,7 @@ class ConfigSerializer {
                 MappingNode subSection = serializeSection(configLoader, configContext, configInstance, sectionIndex.getSubSections().get(option), optionValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), subSection);
             } else {
-                if (option.isHidden() && configContext.defaultValues.get(option) == optionValue) {
+                if (option.isHidden() && configLoader.getConfigOptions().getDefaultValueComparator().test(configContext.defaultValues.get(option), optionValue)) {
                     //Hidden options with their default value should not be saved
                     continue;
                 }
