@@ -2,12 +2,14 @@ package net.lenni0451.optconfig;
 
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
+import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.provider.ConfigProvider;
 import net.lenni0451.optconfig.utils.YamlUtils;
 import org.yaml.snakeyaml.nodes.MappingNode;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Map;
 
 public class ConfigContext<C> {
 
@@ -15,12 +17,14 @@ public class ConfigContext<C> {
     private final C configInstance;
     private final ConfigProvider configProvider;
     private final ConfigIndex configIndex;
+    final Map<ConfigOption, Object> defaultValues;
 
     ConfigContext(final ConfigLoader<C> configLoader, final C configInstance, final ConfigProvider configProvider, final ConfigIndex configIndex) {
         this.configLoader = configLoader;
         this.configInstance = configInstance;
         this.configProvider = configProvider;
         this.configIndex = configIndex;
+        this.defaultValues = configIndex.getCurrentValues(configInstance);
 
         this.setContextField();
     }
@@ -61,7 +65,7 @@ public class ConfigContext<C> {
      * @throws IllegalAccessException If the config class or options are not accessible
      */
     public void reload() throws IOException, IllegalAccessException {
-        this.configLoader.parseSection(this.configIndex, this.configInstance, this.configProvider, true);
+        this.configLoader.parseSection(this.configIndex, this, this.configInstance, this.configProvider, true);
     }
 
     /**
@@ -71,7 +75,7 @@ public class ConfigContext<C> {
      * @throws IllegalAccessException If the config class or options are not accessible
      */
     public void save() throws IOException, IllegalAccessException {
-        MappingNode serializedSection = ConfigSerializer.serializeSection(this.configLoader, this.configInstance, this.configIndex, this.configInstance);
+        MappingNode serializedSection = ConfigSerializer.serializeSection(this.configLoader, this, this.configInstance, this.configIndex, this.configInstance);
         if (this.configLoader.getConfigOptions().isRewriteConfig()) {
             //If the config should be rewritten, just save the serialized section
             this.configLoader.save(serializedSection, this.configProvider);

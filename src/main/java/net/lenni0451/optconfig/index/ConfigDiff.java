@@ -16,7 +16,11 @@ public class ConfigDiff {
         for (ConfigOption option : sectionIndex.getOptions()) {
             if (!missedKeys.remove(option.getName())) {
                 //If a key is not present in the values, it was added to the config
-                configDiff.addedKeys.add(option.getName());
+                if (!option.isHidden()) {
+                    //Hidden options are not added to the diff
+                    //They will not be added if missing, but also not removed if present
+                    configDiff.addedKeys.add(option.getName());
+                }
                 continue;
             }
             if (sectionIndex.getSubSections().containsKey(option)) {

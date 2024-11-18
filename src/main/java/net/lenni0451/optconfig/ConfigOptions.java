@@ -6,6 +6,8 @@ import net.lenni0451.optconfig.access.impl.reflection.ReflectionClassAccess;
 import net.lenni0451.optconfig.access.types.ClassAccess;
 import net.lenni0451.optconfig.annotations.NotReloadable;
 
+import java.util.function.BiPredicate;
+
 /**
  * The options to configure the behavior of the config loader.
  */
@@ -20,6 +22,7 @@ public class ConfigOptions {
     private boolean spaceBetweenOptions = true;
     private boolean notReloadableComment = true;
     private ClassAccessFactory classAccessFactory = ReflectionClassAccess::new;
+    private BiPredicate<Object, Object> defaultValueComparator = (o1, o2) -> o1 == o2;
 
     /**
      * Set if invalid options should be reset to their default value.<br>
@@ -118,6 +121,19 @@ public class ConfigOptions {
      */
     public ConfigOptions setClassAccessFactory(final ClassAccessFactory classAccessFactory) {
         this.classAccessFactory = classAccessFactory;
+        return this;
+    }
+
+    /**
+     * Set the comparator for the default values of the options.<br>
+     * This is used to determine if a default value is equal to the current value of an option.<br>
+     * Default: {@code (o1, o2) -> o1 == o2}
+     *
+     * @param defaultValueComparator The new comparator
+     * @return The config options
+     */
+    public ConfigOptions setDefaultValueComparator(final BiPredicate<Object, Object> defaultValueComparator) {
+        this.defaultValueComparator = defaultValueComparator;
         return this;
     }
 

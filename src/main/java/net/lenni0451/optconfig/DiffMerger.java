@@ -14,10 +14,10 @@ import java.util.Map;
 @ApiStatus.Internal
 class DiffMerger {
 
-    static <C> MappingNode merge(final ConfigLoader<C> configLoader, final String fileContent, final SectionIndex sectionIndex, final ConfigDiff configDiff, @Nullable final C instance) {
+    static <C> MappingNode merge(final ConfigLoader<C> configLoader, final ConfigContext<C> configContext, final String fileContent, final SectionIndex sectionIndex, final ConfigDiff configDiff, @Nullable final C instance) {
         //Some values in the config have changed
         //Load the config as Nodes and apply the differences to keep comments and formatting
-        MappingNode serializedNode = ConfigSerializer.serializeSection(configLoader, instance, sectionIndex, instance); //Used for copying over nodes
+        MappingNode serializedNode = ConfigSerializer.serializeSection(configLoader, configContext, instance, sectionIndex, instance); //Used for copying over nodes
         MappingNode readNode = (MappingNode) configLoader.yaml.compose(new StringReader(fileContent));
         doMerge(configLoader.getConfigOptions(), configDiff, readNode, serializedNode);
         return readNode;

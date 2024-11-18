@@ -86,9 +86,11 @@ public class ConfigLoader<C> {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, this.configClass, this.configOptions.getClassAccessFactory());
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
+        index.initSubSections(this, config);
 
-        this.parseSection(index, config, configProvider, false);
-        return new ConfigContext<>(this, config, configProvider, (ConfigIndex) index);
+        ConfigContext<C> configContext = new ConfigContext<>(this, config, configProvider, (ConfigIndex) index);
+        this.parseSection(index, configContext, config, configProvider, false);
+        return configContext;
     }
 
     /**
@@ -102,11 +104,13 @@ public class ConfigLoader<C> {
         SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, this.configClass, this.configOptions.getClassAccessFactory());
         if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
         if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
-        this.parseSection(index, null, configProvider, false);
-        return new ConfigContext<>(this, null, configProvider, (ConfigIndex) index);
+
+        ConfigContext<C> configContext = new ConfigContext<>(this, null, configProvider, (ConfigIndex) index);
+        this.parseSection(index, configContext, null, configProvider, false);
+        return configContext;
     }
 
-    void parseSection(final SectionIndex sectionIndex, @Nullable final C instance, final ConfigProvider configProvider, final boolean reload) throws IOException {
+    void parseSection(final SectionIndex sectionIndex, final ConfigContext<C> configContext, @Nullable final C instance, final ConfigProvider configProvider, final boolean reload) throws IOException {
         if (configProvider.exists()) {
             //If the file exists, load the content and deserialize it to a map
             //If differences are found, load the config again as Nodes and apply the differences, then save the config again
@@ -117,7 +121,7 @@ public class ConfigLoader<C> {
                 //If the config should be rewritten anyway, this step is not necessary
                 //On reloads also only apply differences because overwriting the config now would revert not reloadable options
                 if (!configDiff.isEmpty()) {
-                    MappingNode mergedNode = DiffMerger.merge(this, content, sectionIndex, configDiff, instance);
+                    MappingNode mergedNode = DiffMerger.merge(this, configContext, content, sectionIndex, configDiff, instance);
                     this.save(mergedNode, configProvider);
                 }
                 return;
@@ -125,7 +129,7 @@ public class ConfigLoader<C> {
         }
         //If the file does not exist, simply serialize the default values
         //This also applies if ConfigOptions.isRewriteConfig() is true
-        MappingNode node = ConfigSerializer.serializeSection(this, instance, sectionIndex, instance);
+        MappingNode node = ConfigSerializer.serializeSection(this, configContext, instance, sectionIndex, instance);
         this.save(node, configProvider);
     }
 

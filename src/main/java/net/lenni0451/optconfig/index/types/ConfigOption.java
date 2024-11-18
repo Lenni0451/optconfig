@@ -4,10 +4,7 @@ import lombok.ToString;
 import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
-import net.lenni0451.optconfig.annotations.Description;
-import net.lenni0451.optconfig.annotations.NotReloadable;
-import net.lenni0451.optconfig.annotations.Option;
-import net.lenni0451.optconfig.annotations.TypeSerializer;
+import net.lenni0451.optconfig.annotations.*;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -25,16 +22,18 @@ public class ConfigOption {
     private final String[] description;
     private final boolean reloadable;
     private final Class<? extends ConfigTypeSerializer<?, ?>> typeSerializer;
+    private final boolean hidden;
     @Nullable
     private final MethodAccess validator;
     private final String[] dependencies;
 
-    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, final Map<String, MethodAccess> validatorMethods) {
+    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, final Map<String, MethodAccess> validatorMethods) {
         this.fieldAccess = fieldAccess;
         this.name = option.value();
         this.description = description == null ? new String[0] : description.value();
         this.reloadable = notReloadable == null;
         this.typeSerializer = typeSerializer == null ? null : typeSerializer.value();
+        this.hidden = hidden != null;
         this.validator = validatorMethods.remove(this.getName());
         this.dependencies = option.dependencies();
     }
@@ -66,6 +65,10 @@ public class ConfigOption {
         } else {
             return unsafeCast(configLoader.getConfigOptions().getClassAccessFactory().create(this.typeSerializer).getConstructor(configClass).newInstance(configInstance));
         }
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
     }
 
     @Nullable

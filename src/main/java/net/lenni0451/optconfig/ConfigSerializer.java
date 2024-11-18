@@ -7,7 +7,6 @@ import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
-import net.lenni0451.optconfig.utils.ReflectionUtils;
 import net.lenni0451.optconfig.utils.YamlUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.DumperOptions;
@@ -37,11 +36,6 @@ class ConfigSerializer {
                 Object optionValue = option.getFieldAccess().getValue(sectionInstance);
                 Class<?> optionType = option.getFieldAccess().getType();
                 if (sectionIndex.getSubSections().containsKey(option)) {
-                    if (optionValue == null) {
-                        //Config sections don't have to be instantiated by the user
-                        optionValue = ReflectionUtils.instantiate(configLoader, optionType);
-                        option.getFieldAccess().setValue(sectionInstance, optionValue);
-                    }
                     deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), reload, configDiff.getSubSections().get(option.getName()));
                 } else {
                     ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
@@ -72,7 +66,7 @@ class ConfigSerializer {
         }
     }
 
-    static <C> MappingNode serializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance) {
+    static <C> MappingNode serializeSection(final ConfigLoader<C> configLoader, final ConfigContext<C> configContext, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance) {
         ConfigOptions options = configLoader.getConfigOptions();
         List<NodeTuple> section = new ArrayList<>();
         MappingNode rootNode = new MappingNode(Tag.MAP, section, DumperOptions.FlowStyle.BLOCK);
@@ -83,14 +77,13 @@ class ConfigSerializer {
             Class<?> optionType = option.getFieldAccess().getType();
             NodeTuple tuple;
             if (sectionIndex.getSubSections().containsKey(option)) {
-                if (optionValue == null) {
-                    //Config sections don't have to be instantiated by the user
-                    optionValue = ReflectionUtils.instantiate(configLoader, option.getFieldAccess().getType());
-                    option.getFieldAccess().setValue(sectionInstance, optionValue);
-                }
-                MappingNode subSection = serializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue);
+                MappingNode subSection = serializeSection(configLoader, configContext, configInstance, sectionIndex.getSubSections().get(option), optionValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), subSection);
             } else {
+                if (option.isHidden() && configLoader.getConfigOptions().getDefaultValueComparator().test(configContext.defaultValues.get(option), optionValue)) {
+                    //Hidden options with their default value should not be saved
+                    continue;
+                }
                 ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
                 Object deserializedValue = optionValue;
                 if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
