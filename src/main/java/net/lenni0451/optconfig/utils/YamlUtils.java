@@ -26,6 +26,8 @@ public class YamlUtils {
         DumperOptions dumperOptions = new DumperOptions();
         dumperOptions.setWidth(Integer.MAX_VALUE); //Disable line wrapping
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); //Set the default flow style to block
+        dumperOptions.setIndentWithIndicator(true); //Allow lists and maps to be indented
+        dumperOptions.setIndicatorIndent(2); //Set the list indent to 2
         dumperOptionsConsumer.accept(dumperOptions);
         dumperOptions.setProcessComments(true); //Enable comment writing
 
