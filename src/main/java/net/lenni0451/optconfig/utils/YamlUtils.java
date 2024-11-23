@@ -13,6 +13,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class YamlUtils {
@@ -175,29 +176,74 @@ public class YamlUtils {
         }
     }
 
-    public static void copyValues(final MappingNode from, final MappingNode to) {
-        for (NodeTuple tuple : from.getValue()) {
-            NodeTuple toTuple = get(to, ((ScalarNode) tuple.getKeyNode()).getValue());
-            if (toTuple == null) {
-                //If the node does not exist in the target, add it
-                int index = from.getValue().indexOf(tuple);
-                insert(to, tuple, index);
-            } else {
-                //If the node exists, check if it's a mapping node and copy the values
-                if (tuple.getValueNode() instanceof MappingNode && toTuple.getValueNode() instanceof MappingNode) {
-                    copyValues((MappingNode) tuple.getValueNode(), (MappingNode) toTuple.getValueNode());
-                } else {
-                    //If it's not a mapping node, just copy the value
-                    NodeTuple newTuple = new NodeTuple(toTuple.getKeyNode(), tuple.getValueNode());
-                    to.getValue().set(to.getValue().indexOf(toTuple), newTuple);
+    public static boolean copyValues(final Node from, final Node to) {
+        if (from instanceof MappingNode && to instanceof MappingNode) {
+            MappingNode fromMap = (MappingNode) from;
+            MappingNode toMap = (MappingNode) to;
+            for (NodeTuple fromTuple : fromMap.getValue()) {
+                NodeTuple toTuple = get(toMap, ((ScalarNode) fromTuple.getKeyNode()).getValue());
+                if (toTuple == null) {
+                    //If the node does not exist in the target, add it
+                    int index = fromMap.getValue().indexOf(fromTuple);
+                    insert(toMap, fromTuple, index);
+                } else if (!copyValues(fromTuple.getValueNode(), toTuple.getValueNode())) {
+                    //If the node was not merged, replace the value
+                    NodeTuple newTuple = new NodeTuple(toTuple.getKeyNode(), fromTuple.getValueNode());
+                    toMap.getValue().set(toMap.getValue().indexOf(toTuple), newTuple);
 
-                    //Set the comments of the new tuple to the comments of the old tuple
+                    //Copy the comments of the old value to the new value
                     newTuple.getValueNode().setBlockComments(toTuple.getValueNode().getBlockComments());
                     newTuple.getValueNode().setEndComments(toTuple.getValueNode().getEndComments());
                     newTuple.getValueNode().setInLineComments(toTuple.getValueNode().getInLineComments());
                 }
             }
+            return true;
+        } else if (from instanceof SequenceNode && to instanceof SequenceNode) {
+            //Go through all elements of the sequences and merge them
+            SequenceNode fromSeq = (SequenceNode) from;
+            SequenceNode toSeq = (SequenceNode) to;
+            List<Node> newNodes = new ArrayList<>();
+            FROM_LOOP:
+            for (Node fromNode : fromSeq.getValue()) {
+                for (Node toNode : toSeq.getValue()) {
+                    if (equals(fromNode, toNode)) {
+                        newNodes.add(toNode);
+                        continue FROM_LOOP;
+                    }
+                }
+                newNodes.add(fromNode);
+            }
+            toSeq.getValue().clear();
+            toSeq.getValue().addAll(newNodes);
+            return true;
         }
+        return false;
+    }
+
+    public static boolean equals(final Node node1, final Node node2) {
+        if (node1 instanceof MappingNode && node2 instanceof MappingNode) {
+            MappingNode map1 = (MappingNode) node1;
+            MappingNode map2 = (MappingNode) node2;
+            if (map1.getValue().size() != map2.getValue().size()) return false;
+            for (NodeTuple tuple : map1.getValue()) {
+                NodeTuple otherTuple = get(map2, ((ScalarNode) tuple.getKeyNode()).getValue());
+                if (otherTuple == null || !equals(tuple.getValueNode(), otherTuple.getValueNode())) return false;
+            }
+            return true;
+        } else if (node1 instanceof SequenceNode && node2 instanceof SequenceNode) {
+            SequenceNode seq1 = (SequenceNode) node1;
+            SequenceNode seq2 = (SequenceNode) node2;
+            if (seq1.getValue().size() != seq2.getValue().size()) return false;
+            for (int i = 0; i < seq1.getValue().size(); i++) {
+                if (!equals(seq1.getValue().get(i), seq2.getValue().get(i))) return false;
+            }
+            return true;
+        } else if (node1 instanceof ScalarNode && node2 instanceof ScalarNode) {
+            ScalarNode scalar1 = (ScalarNode) node1;
+            ScalarNode scalar2 = (ScalarNode) node2;
+            return Objects.equals(scalar1.getValue(), scalar2.getValue());
+        }
+        return false;
     }
 
     public static List<CommentLine> makeCommentsMutable(final Node node) {
