@@ -21,6 +21,6 @@ public @interface TypeSerializer {
      *
      * @return The type serializer class
      */
-    Class<? extends ConfigTypeSerializer<?, ?>> value();
+    Class<? extends ConfigTypeSerializer> value();
 
 }
