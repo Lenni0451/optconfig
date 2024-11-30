@@ -2,6 +2,8 @@ package net.lenni0451.optconfig.index.types;
 
 import lombok.ToString;
 import net.lenni0451.optconfig.ConfigLoader;
+import net.lenni0451.optconfig.access.types.ClassAccess;
+import net.lenni0451.optconfig.access.types.ConstructorAccess;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
 import net.lenni0451.optconfig.annotations.*;
@@ -32,7 +34,7 @@ public class ConfigOption {
         this.name = option.value();
         this.description = description == null ? new String[0] : description.value();
         this.reloadable = notReloadable == null;
-        this.typeSerializer = typeSerializer == null ? null : typeSerializer.value();
+        this.typeSerializer = typeSerializer == null ? null : unsafeCast(typeSerializer.value());
         this.hidden = hidden != null;
         this.validator = validatorMethods.remove(this.getName());
         this.dependencies = option.dependencies();
@@ -63,7 +65,19 @@ public class ConfigOption {
         if (this.typeSerializer == null) {
             return unsafeCast(configLoader.getTypeSerializers().get(configInstance, this.fieldAccess.getType()));
         } else {
-            return unsafeCast(configLoader.getConfigOptions().getClassAccessFactory().create(this.typeSerializer).getConstructor(configClass).newInstance(configInstance));
+            ClassAccess classAccess = configLoader.getConfigOptions().getClassAccessFactory().create(this.typeSerializer);
+            Class<?> currentClass = configClass;
+            ConstructorAccess constructor;
+            do {
+                //Try to get the constructor for the config class or its super classes
+                constructor = classAccess.tryGetConstructor(currentClass);
+            } while (constructor == null && (currentClass = currentClass.getSuperclass()) != null);
+            if (constructor == null) constructor = classAccess.tryGetConstructor(); //If no fitting constructor was found try to get the default constructor
+            if (constructor == null) {
+                //No constructor found
+                throw new IllegalArgumentException("No config (" + configClass.getName() + ") constructor found for type serializer: " + this.typeSerializer.getName());
+            }
+            return unsafeCast(constructor.newInstance(configInstance));
         }
     }
 

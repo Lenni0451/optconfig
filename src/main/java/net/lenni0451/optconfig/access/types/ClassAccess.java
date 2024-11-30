@@ -27,12 +27,24 @@ public interface ClassAccess {
      * @throws IllegalArgumentException If no constructor with the given parameter types was found
      */
     default ConstructorAccess getConstructor(final Class<?>... parameterTypes) {
+        ConstructorAccess constructor = this.tryGetConstructor(parameterTypes);
+        if (constructor != null) return constructor;
+        throw new IllegalArgumentException("No constructor found with the parameter types: " + Arrays.toString(parameterTypes));
+    }
+
+    /**
+     * Try to get a constructor with the given parameter types.
+     *
+     * @param parameterTypes The parameter types of the constructor
+     * @return The constructor or null if no constructor with the given parameter types was found
+     */
+    default ConstructorAccess tryGetConstructor(final Class<?>... parameterTypes) {
         for (ConstructorAccess constructor : this.getConstructors()) {
             if (Arrays.equals(constructor.getParameterTypes(), parameterTypes)) {
                 return constructor;
             }
         }
-        throw new IllegalArgumentException("No constructor found with the parameter types: " + Arrays.toString(parameterTypes));
+        return null;
     }
 
     /**

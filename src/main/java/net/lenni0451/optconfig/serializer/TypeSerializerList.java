@@ -2,6 +2,7 @@ package net.lenni0451.optconfig.serializer;
 
 import net.lenni0451.optconfig.serializer.impl.*;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
@@ -28,11 +29,27 @@ public class TypeSerializerList<C> {
         this.add(Enum.class, config -> new GenericEnumSerializer<>(config)); //A generic enum serializer that converts strings to enum. The names are case-insensitive
     }
 
+    /**
+     * Add a new type serializer to the list.
+     *
+     * @param type               The type to add the serializer for
+     * @param serializerSupplier The supplier for the serializer
+     * @param <T>                The type of the serializer
+     */
     public <T> void add(final Class<T> type, final Function<C, ConfigTypeSerializer<C, T>> serializerSupplier) {
         this.serializers.put(type, unsafeCast(serializerSupplier));
     }
 
-    public <T> ConfigTypeSerializer<C, T> get(final C config, final Class<T> type) {
+    /**
+     * Get a type serializer for the given type.
+     * The serializer may also be for a superclass or interface of the given type.
+     *
+     * @param config The config instance (null if the config is static)
+     * @param type   The type to get the serializer for
+     * @param <T>    The type of the serializer
+     * @return The type serializer
+     */
+    public <T> ConfigTypeSerializer<C, T> get(@Nullable final C config, final Class<T> type) {
         Class<?> currentType = type;
         Set<Class<?>> interfaces = new LinkedHashSet<>();
         do {

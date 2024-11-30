@@ -17,7 +17,7 @@ public @interface TypeSerializer {
 
     /**
      * Get the type serializer class.<br>
-     * The class must have a public constructor only taking the config class <i>(not the section)</i> as parameter.
+     * The class must have an empty constructor or a constructor only taking the config class <i>(not the section)</i> as parameter.
      *
      * @return The type serializer class
      */
