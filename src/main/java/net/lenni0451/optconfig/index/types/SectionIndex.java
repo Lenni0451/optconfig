@@ -106,4 +106,15 @@ public class SectionIndex {
         return values;
     }
 
+    public void merge(final SectionIndex other) {
+        for (String name : other.optionsOrder) {
+            ConfigOption option = other.getOption(name);
+            if (option != null && !this.optionsOrder.contains(name)) {
+                this.addOption(option);
+                SectionIndex subSection = other.subSections.get(option);
+                if (subSection != null) this.addSubSection(option, subSection);
+            }
+        }
+    }
+
 }

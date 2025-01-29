@@ -26,6 +26,10 @@ public class ClassIndexer {
 
     public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccessFactory classAccessFactory) {
         ClassAccess classAccess = classAccessFactory.create(clazz);
+        return indexClass(configType, clazz, classAccess, classAccessFactory, true);
+    }
+
+    public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory, final boolean loadInMemoryFields) {
         SectionIndex sectionIndex;
         if (classAccess.getAnnotation(OptConfig.class) != null) {
             OptConfig optConfig = classAccess.getAnnotation(OptConfig.class);
@@ -38,7 +42,8 @@ public class ClassIndexer {
             throw new IllegalArgumentException("The class " + clazz.getName() + " is not annotated with @OptConfig or @Section");
         }
         indexFields(sectionIndex, classAccess, classAccessFactory);
-        addInMemoryFields(sectionIndex);
+        loadSuperClasses(configType, clazz, classAccess, sectionIndex, classAccessFactory);
+        if (loadInMemoryFields) addInMemoryFields(sectionIndex);
         return sectionIndex;
     }
 
@@ -131,6 +136,23 @@ public class ClassIndexer {
                         null,
                         Collections.emptyMap()
                 ));
+            }
+        }
+    }
+
+    private static void loadSuperClasses(final ConfigType configType, final Class<?> clazz, final ClassAccess classAccess, final SectionIndex sectionIndex, final ClassAccessFactory classAccessFactory) {
+        if (clazz.getDeclaredAnnotation(CheckSuperclasses.class) == null) return;
+        Class<?> superClass = clazz.getSuperclass();
+        while (superClass != null) {
+            ClassAccess superClassAccess = classAccessFactory.create(superClass);
+            if (classAccess.getAnnotation(OptConfig.class) != null && superClassAccess.getAnnotation(OptConfig.class) != null
+                    || classAccess.getAnnotation(Section.class) != null && superClassAccess.getAnnotation(Section.class) != null) {
+                //Load the section index of the super class but without any in memory fields (config version)
+                SectionIndex superClassIndex = indexClass(configType, superClass, superClassAccess, classAccessFactory, false);
+                sectionIndex.merge(superClassIndex);
+                break;
+            } else {
+                superClass = superClass.getSuperclass();
             }
         }
     }
