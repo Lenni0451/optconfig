@@ -17,7 +17,7 @@ public class ConfigOptions {
     private boolean resetInvalidOptions = false;
     private boolean removeUnknownOptions = true;
     private boolean addMissingOptions = true;
-    private int commentSpacing = 0;
+    private int commentSpacing = 1;
     private boolean rewriteConfig = false;
     private boolean spaceBetweenOptions = true;
     private boolean notReloadableComment = true;
