@@ -143,6 +143,7 @@ import java.time.Month;
 }) //The header will be appended to the top of the config file
 @Migrator(from = 1, to = 2, migrator = ConfigMigrator.class) //Migrator for version 1 to 2
 @Migrator(from = 2, to = 3, migrator = ConfigMigrator.class) //Migrator for version 2 to 3
+@CheckSuperclasses //Check superclasses for config options (only useful if extending another config class)
 public class TestConfig {
 
     public ConfigContext<TestConfig> context; //This field is automatically set by the ConfigLoader
@@ -168,10 +169,12 @@ public class TestConfig {
         @Option(dependencies = "test") //This option depends on "test" being loaded first. The value of "test" can be accessed in the validator or type serializers
         @Description("Enum option")
         @TypeSerializer(TestMonthSerializer.class) //Custom type serializer only for this option
+        @Order(Integer.MAX_VALUE) //The position of the option in the serialized config
         public Month month = Month.JUNE;
 
         @Option //No name specified -> Field name is used
         //No description specified -> No comments are added
+        @Hidden //Hidden options are only saved to the config if they have a value other than the default value
         public String test = "Test String 3";
 
         @Validator("test") //Validate the value of the option "test"

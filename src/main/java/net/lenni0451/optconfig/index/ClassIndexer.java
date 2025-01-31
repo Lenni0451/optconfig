@@ -26,10 +26,10 @@ public class ClassIndexer {
 
     public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccessFactory classAccessFactory) {
         ClassAccess classAccess = classAccessFactory.create(clazz);
-        return indexClass(configType, clazz, classAccess, classAccessFactory, true);
+        return indexClass(configType, clazz, classAccess, classAccessFactory, false);
     }
 
-    public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory, final boolean loadInMemoryFields) {
+    public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory, final boolean loadOnly) {
         SectionIndex sectionIndex;
         if (classAccess.getAnnotation(OptConfig.class) != null) {
             OptConfig optConfig = classAccess.getAnnotation(OptConfig.class);
@@ -43,7 +43,10 @@ public class ClassIndexer {
         }
         indexFields(sectionIndex, classAccess, classAccessFactory);
         loadSuperClasses(configType, clazz, classAccess, sectionIndex, classAccessFactory);
-        if (loadInMemoryFields) addInMemoryFields(sectionIndex);
+        if (!loadOnly) {
+            sectionIndex.sortOptions();
+            addInMemoryFields(sectionIndex);
+        }
         return sectionIndex;
     }
 
@@ -80,7 +83,8 @@ public class ClassIndexer {
             NotReloadable notReloadable = field.getAnnotation(NotReloadable.class);
             TypeSerializer typeSerializer = field.getAnnotation(TypeSerializer.class);
             Hidden hidden = field.getAnnotation(Hidden.class);
-            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, validatorMethods);
+            Order order = field.getAnnotation(Order.class);
+            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, validatorMethods);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }
@@ -107,6 +111,7 @@ public class ClassIndexer {
                         section.reloadable() ? null : new DummyNotReloadable(),
                         null,
                         null,
+                        null,
                         Collections.emptyMap()
                 );
                 sectionIndex.addOption(subSectionOption);
@@ -120,7 +125,6 @@ public class ClassIndexer {
                 if (sectionIndex.getOption(dependency) == null) throw new UnknownDependencyException(option.getName(), dependency);
             }
         }
-        sectionIndex.sortOptions();
     }
 
     private static void addInMemoryFields(final SectionIndex sectionIndex) {
@@ -131,6 +135,7 @@ public class ClassIndexer {
                         new DummyFieldAccess(OptConfig.CONFIG_VERSION_OPTION, int.class, configIndex.getVersion()),
                         new DummyOption(OptConfig.CONFIG_VERSION_OPTION),
                         new DummyDescription("The current version of the config file.", "DO NOT CHANGE THIS VALUE!", "CHANGING THIS VALUE WILL BREAK THE CONFIG FILE!"),
+                        null,
                         null,
                         null,
                         null,
@@ -148,7 +153,7 @@ public class ClassIndexer {
             if (classAccess.getAnnotation(OptConfig.class) != null && superClassAccess.getAnnotation(OptConfig.class) != null
                     || classAccess.getAnnotation(Section.class) != null && superClassAccess.getAnnotation(Section.class) != null) {
                 //Load the section index of the super class but without any in memory fields (config version)
-                SectionIndex superClassIndex = indexClass(configType, superClass, superClassAccess, classAccessFactory, false);
+                SectionIndex superClassIndex = indexClass(configType, superClass, superClassAccess, classAccessFactory, true);
                 sectionIndex.merge(superClassIndex);
                 break;
             } else {

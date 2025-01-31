@@ -25,17 +25,19 @@ public class ConfigOption {
     private final boolean reloadable;
     private final Class<? extends ConfigTypeSerializer<?, ?>> typeSerializer;
     private final boolean hidden;
+    private final int order;
     @Nullable
     private final MethodAccess validator;
     private final String[] dependencies;
 
-    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, final Map<String, MethodAccess> validatorMethods) {
+    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, final Map<String, MethodAccess> validatorMethods) {
         this.fieldAccess = fieldAccess;
         this.name = option.value();
         this.description = description == null ? new String[0] : description.value();
         this.reloadable = notReloadable == null;
         this.typeSerializer = typeSerializer == null ? null : unsafeCast(typeSerializer.value());
         this.hidden = hidden != null;
+        this.order = order == null ? -1 : Math.max(0, order.value());
         this.validator = validatorMethods.remove(this.getName());
         this.dependencies = option.dependencies();
     }
@@ -83,6 +85,10 @@ public class ConfigOption {
 
     public boolean isHidden() {
         return this.hidden;
+    }
+
+    public int getOrder() {
+        return this.order;
     }
 
     @Nullable
