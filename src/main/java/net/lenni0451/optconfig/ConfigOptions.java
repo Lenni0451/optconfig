@@ -22,7 +22,17 @@ public class ConfigOptions {
     private boolean spaceBetweenOptions = true;
     private boolean notReloadableComment = true;
     private ClassAccessFactory classAccessFactory = ReflectionClassAccess::new;
-    private BiPredicate<Object, Object> defaultValueComparator = (o1, o2) -> o1 == o2;
+    private BiPredicate<Object, Object> defaultValueComparator = (o1, o2) -> {
+        if (o1 instanceof Boolean && o2 instanceof Boolean) return (boolean) o1 == (boolean) o2;
+        if (o1 instanceof Byte && o2 instanceof Byte) return (byte) o1 == (byte) o2;
+        if (o1 instanceof Short && o2 instanceof Short) return (short) o1 == (short) o2;
+        if (o1 instanceof Character && o2 instanceof Character) return (char) o1 == (char) o2;
+        if (o1 instanceof Integer && o2 instanceof Integer) return (int) o1 == (int) o2;
+        if (o1 instanceof Long && o2 instanceof Long) return (long) o1 == (long) o2;
+        if (o1 instanceof Float && o2 instanceof Float) return (float) o1 == (float) o2;
+        if (o1 instanceof Double && o2 instanceof Double) return (double) o1 == (double) o2;
+        return o1 == o2;
+    };
 
     /**
      * Set if invalid options should be reset to their default value.<br>
