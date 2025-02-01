@@ -160,8 +160,12 @@ public class TestConfig {
 
     @Option //No name specified -> Field name is used
     //@NotReloadable //Sections can also be marked as not reloadable. This will also affect all options in this section
-    @Description("This is a test section") //Sections can have descriptions
+    @Description(value = "This is a test section", generator = "generateDescription") //Sections can have descriptions, part of it is generated
     public TestSection section; //Sections are automatically instantiated. Instantiating them manually will also work
+
+    private static String[] generateDescription() {
+        return new String[]{"The description has been generated", "The current time is: " + System.currentTimeMillis(), "It will update every start if RewriteConfig is enabled"};
+    }
 
 
     @Section //Sections need to be annotated with @Section

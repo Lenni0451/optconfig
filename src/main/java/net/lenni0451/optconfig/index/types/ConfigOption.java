@@ -7,10 +7,15 @@ import net.lenni0451.optconfig.access.types.ConstructorAccess;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
 import net.lenni0451.optconfig.annotations.*;
+import net.lenni0451.optconfig.exceptions.InvalidDescriptionGeneratorException;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
@@ -18,6 +23,25 @@ import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 @ToString
 @ApiStatus.Internal
 public class ConfigOption {
+
+    private static String[] getDescription(final String option, @Nullable final Description description, @Nullable final ClassAccess classAccess) {
+        if (description == null) return new String[0];
+        List<String> descriptionList = new ArrayList<>();
+        Collections.addAll(descriptionList, description.value());
+        if (!description.generator().isEmpty() && classAccess != null) {
+            MethodAccess generator = classAccess.tryGetMethod(description.generator(), String[].class);
+            if (generator == null) {
+                throw new InvalidDescriptionGeneratorException(classAccess.getClazz(), option, description.generator(), "the method does not exist or has the wrong signature");
+            }
+            if (!Modifier.isStatic(generator.getModifiers())) {
+                throw new InvalidDescriptionGeneratorException(classAccess.getClazz(), option, description.generator(), "the method is not static");
+            }
+            String[] generatedDescription = (String[]) generator.invoke(null);
+            if (generatedDescription != null) Collections.addAll(descriptionList, generatedDescription);
+        }
+        return descriptionList.toArray(new String[0]);
+    }
+
 
     private final FieldAccess fieldAccess;
     private final String name;
@@ -30,10 +54,10 @@ public class ConfigOption {
     private final MethodAccess validator;
     private final String[] dependencies;
 
-    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, final Map<String, MethodAccess> validatorMethods) {
+    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, final Map<String, MethodAccess> validatorMethods, @Nullable final ClassAccess classAccess) {
         this.fieldAccess = fieldAccess;
-        this.name = option.value();
-        this.description = description == null ? new String[0] : description.value();
+        this.name = option.value().isEmpty() ? fieldAccess.getName() : option.value();
+        this.description = getDescription(this.name, description, classAccess);
         this.reloadable = notReloadable == null;
         this.typeSerializer = typeSerializer == null ? null : unsafeCast(typeSerializer.value());
         this.hidden = hidden != null;
@@ -47,8 +71,7 @@ public class ConfigOption {
     }
 
     public String getName() {
-        if (this.name.isEmpty()) return this.fieldAccess.getName();
-        else return this.name;
+        return this.name;
     }
 
     public String[] getDescription() {

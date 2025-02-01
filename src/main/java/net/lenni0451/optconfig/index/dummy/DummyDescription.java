@@ -18,6 +18,11 @@ public class DummyDescription implements Description {
     }
 
     @Override
+    public String generator() {
+        return "";
+    }
+
+    @Override
     public Class<? extends Annotation> annotationType() {
         return DummyDescription.class;
     }

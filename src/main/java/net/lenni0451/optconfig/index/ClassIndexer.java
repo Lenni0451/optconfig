@@ -84,7 +84,7 @@ public class ClassIndexer {
             TypeSerializer typeSerializer = field.getAnnotation(TypeSerializer.class);
             Hidden hidden = field.getAnnotation(Hidden.class);
             Order order = field.getAnnotation(Order.class);
-            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, validatorMethods);
+            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, validatorMethods, classAccess);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }
@@ -112,7 +112,8 @@ public class ClassIndexer {
                         null,
                         null,
                         null,
-                        Collections.emptyMap()
+                        Collections.emptyMap(),
+                        null
                 );
                 sectionIndex.addOption(subSectionOption);
                 sectionIndex.addSubSection(subSectionOption, indexClass(sectionIndex.getConfigType(), innerClass.getClazz(), classAccessFactory));
@@ -139,7 +140,8 @@ public class ClassIndexer {
                         null,
                         null,
                         null,
-                        Collections.emptyMap()
+                        Collections.emptyMap(),
+                        null
                 ));
             }
         }
