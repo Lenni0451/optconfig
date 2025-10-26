@@ -40,7 +40,11 @@ public class ConfigLoader<C> {
     }
 
     public ConfigLoader(final Class<C> configClass, final Consumer<LoaderOptions> loaderOptionsConsumer, final Consumer<DumperOptions> dumperOptionsConsumer) {
-        this.yaml = YamlUtils.createYaml(loaderOptionsConsumer, dumperOptionsConsumer);
+        this(YamlUtils.createYaml(loaderOptionsConsumer, dumperOptionsConsumer), configClass);
+    }
+
+    public ConfigLoader(final Yaml yaml, final Class<C> configClass) {
+        this.yaml = yaml;
         this.configClass = configClass;
         this.configOptions = new ConfigOptions();
         this.typeSerializers = new TypeSerializerList<>();
