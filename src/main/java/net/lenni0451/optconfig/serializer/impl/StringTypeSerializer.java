@@ -2,6 +2,8 @@ package net.lenni0451.optconfig.serializer.impl;
 
 import net.lenni0451.optconfig.exceptions.InvalidSerializedObjectException;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
+import net.lenni0451.optconfig.serializer.info.DeserializerInfo;
+import net.lenni0451.optconfig.serializer.info.SerializerInfo;
 
 /**
  * A serializer for the String type.<br>
@@ -34,24 +36,27 @@ public class StringTypeSerializer<C> extends ConfigTypeSerializer<C, String> {
     }
 
     @Override
-    public String deserialize(Object serializedObject) {
-        if (serializedObject == null) {
+    public String deserialize(DeserializerInfo<C, String> info) {
+        if (info.serializedValue() == null) {
             return null;
-        } else if (serializedObject instanceof String) {
-            String s = (String) serializedObject;
+        } else if (info.serializedValue() instanceof String) {
+            String s = (String) info.serializedValue();
             if (this.emptyIsNull && s.isEmpty()) return null;
             else return s;
-        } else if (serializedObject instanceof Number || serializedObject instanceof Boolean) {
-            return serializedObject.toString();
+        } else if (info.serializedValue() instanceof Number || info.serializedValue() instanceof Boolean) {
+            return info.serializedValue().toString();
         } else {
-            throw new InvalidSerializedObjectException(String.class, serializedObject.getClass());
+            throw new InvalidSerializedObjectException(String.class, info.serializedValue().getClass());
         }
     }
 
     @Override
-    public Object serialize(String object) {
-        if (this.emptyIsNull && object == null) return "";
-        else return object;
+    public Object serialize(SerializerInfo<C, String> info) {
+        if (this.emptyIsNull && info.value() == null) {
+            return "";
+        } else {
+            return info.value();
+        }
     }
 
 }

@@ -2,13 +2,12 @@ package net.lenni0451.optconfig.serializer.impl;
 
 import net.lenni0451.optconfig.exceptions.InvalidSerializedObjectException;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
-import net.lenni0451.optconfig.serializer.TypeSerializerList;
+import net.lenni0451.optconfig.serializer.info.DeserializerInfo;
+import net.lenni0451.optconfig.serializer.info.SerializerInfo;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
-
-import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 
 /**
  * The default serializer that just returns the object without any changes.<br>
@@ -24,60 +23,60 @@ public class GenericTypeSerializer<C> extends ConfigTypeSerializer<C, Object> {
     }
 
     @Override
-    public Object deserialize(TypeSerializerList<C> typeSerializers, Class<Object> typeClass, Object currentValue, Object serializedObject) {
-        if (serializedObject == null) return null;
-        if (typeClass.isArray()) {
-            if (serializedObject.getClass().isArray()) {
-                int arrayLength = Array.getLength(serializedObject);
-                Object newArray = Array.newInstance(typeClass.getComponentType(), arrayLength);
+    public Object deserialize(DeserializerInfo<C, Object> info) {
+        if (info.serializedValue() == null) return null;
+        if (info.type().isArray()) {
+            if (info.serializedValue().getClass().isArray()) {
+                int arrayLength = Array.getLength(info.serializedValue());
+                Object newArray = Array.newInstance(info.type().getComponentType(), arrayLength);
                 for (int i = 0; i < arrayLength; i++) {
-                    Object defaultValue = (currentValue == null || Array.getLength(currentValue) <= i) ? null : Array.get(currentValue, i);
-                    Class<?> componentType = defaultValue == null ? typeClass.getComponentType() : defaultValue.getClass();
-                    Object value = Array.get(serializedObject, i);
+                    Object defaultValue = (info.currentValue() == null || Array.getLength(info.currentValue()) <= i) ? null : Array.get(info.currentValue(), i);
+                    Class<?> componentType = defaultValue == null ? info.type().getComponentType() : defaultValue.getClass();
+                    Object value = Array.get(info.serializedValue(), i);
 
-                    ConfigTypeSerializer<C, ?> typeSerializer = typeSerializers.get(this.config, componentType);
-                    Object deserializedValue = typeSerializer.deserialize(typeSerializers, unsafeCast(componentType), unsafeCast(defaultValue), value);
+                    ConfigTypeSerializer<C, ?> typeSerializer = info.typeSerializers().get(this.config, componentType);
+                    Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(info.typeSerializers(), componentType, defaultValue, value));
                     Array.set(newArray, i, deserializedValue);
                 }
                 return newArray;
-            } else if (serializedObject instanceof List<?>) { //YAML usually returns a list for arrays
-                List<?> serializedList = (List<?>) serializedObject;
-                Object newArray = Array.newInstance(typeClass.getComponentType(), serializedList.size());
+            } else if (info.serializedValue() instanceof List<?>) { //YAML usually returns a list for arrays
+                List<?> serializedList = (List<?>) info.serializedValue();
+                Object newArray = Array.newInstance(info.type().getComponentType(), serializedList.size());
                 for (int i = 0; i < serializedList.size(); i++) {
-                    Object defaultValue = (currentValue == null || Array.getLength(currentValue) <= i) ? null : Array.get(currentValue, i);
-                    Class<?> componentType = defaultValue == null ? typeClass.getComponentType() : defaultValue.getClass();
+                    Object defaultValue = (info.currentValue() == null || Array.getLength(info.currentValue()) <= i) ? null : Array.get(info.currentValue(), i);
+                    Class<?> componentType = defaultValue == null ? info.type().getComponentType() : defaultValue.getClass();
                     Object value = serializedList.get(i);
 
-                    ConfigTypeSerializer<C, ?> typeSerializer = typeSerializers.get(this.config, componentType);
-                    Object deserializedValue = typeSerializer.deserialize(typeSerializers, unsafeCast(componentType), unsafeCast(defaultValue), value);
+                    ConfigTypeSerializer<C, ?> typeSerializer = info.typeSerializers().get(this.config, componentType);
+                    Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(info.typeSerializers(), componentType, defaultValue, value));
                     Array.set(newArray, i, deserializedValue);
                 }
                 return newArray;
             } else {
-                throw new InvalidSerializedObjectException(List.class, serializedObject.getClass());
+                throw new InvalidSerializedObjectException(List.class, info.serializedValue().getClass());
             }
         } else {
-            return serializedObject;
+            return info.serializedValue();
         }
     }
 
     @Override
-    public Object serialize(TypeSerializerList<C> typeSerializers, Class<Object> typeClass, Object object) {
-        if (object == null) return null;
-        if (typeClass.isArray()) {
-            int arrayLength = Array.getLength(object);
+    public Object serialize(SerializerInfo<C, Object> info) {
+        if (info.value() == null) return null;
+        if (info.type().isArray()) {
+            int arrayLength = Array.getLength(info.value());
             List<Object> serializedList = new ArrayList<>(arrayLength); //YAML treats arrays and lists the same way
             for (int i = 0; i < arrayLength; i++) {
-                Object value = Array.get(object, i);
-                Class<?> componentType = value == null ? typeClass.getComponentType() : value.getClass();
+                Object value = Array.get(info.value(), i);
+                Class<?> componentType = value == null ? info.type().getComponentType() : value.getClass();
 
-                ConfigTypeSerializer<C, ?> typeSerializer = typeSerializers.get(this.config, componentType);
-                Object serializedValue = typeSerializer.serialize(typeSerializers, unsafeCast(componentType), unsafeCast(value));
+                ConfigTypeSerializer<C, ?> typeSerializer = info.typeSerializers().get(this.config, componentType);
+                Object serializedValue = typeSerializer.serialize(new SerializerInfo(info.typeSerializers(), componentType, value));
                 serializedList.add(serializedValue);
             }
             return serializedList;
         } else {
-            return object;
+            return info.value();
         }
     }
 

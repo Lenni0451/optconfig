@@ -2,13 +2,12 @@ package net.lenni0451.optconfig.serializer.impl;
 
 import net.lenni0451.optconfig.exceptions.InvalidSerializedObjectException;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
-import net.lenni0451.optconfig.serializer.TypeSerializerList;
+import net.lenni0451.optconfig.serializer.info.DeserializerInfo;
+import net.lenni0451.optconfig.serializer.info.SerializerInfo;
 import net.lenni0451.optconfig.utils.ClassUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 
 /**
  * A generic serializer for lists.
@@ -23,34 +22,34 @@ public class GenericListSerializer<C> extends ConfigTypeSerializer<C, List> {
     }
 
     @Override
-    public List deserialize(TypeSerializerList<C> typeSerializers, Class<List> typeClass, List currentValue, Object serializedObject) {
-        if (serializedObject == null) return null;
-        if (!(serializedObject instanceof List)) throw new InvalidSerializedObjectException(List.class, serializedObject.getClass());
+    public List deserialize(DeserializerInfo<C, List> info) {
+        if (info.serializedValue() == null) return null;
+        if (!(info.serializedValue() instanceof List)) throw new InvalidSerializedObjectException(List.class, info.serializedValue().getClass());
 
-        Class<?> listType = ClassUtils.getCollectionType(currentValue);
-        List list = (List) serializedObject;
+        Class<?> listType = ClassUtils.getCollectionType(info.currentValue());
+        List list = (List) info.serializedValue();
         List newList = new ArrayList(list.size());
         for (int i = 0; i < list.size(); i++) {
-            Object defaultValue = (currentValue == null || currentValue.size() <= i) ? null : currentValue.get(i);
+            Object defaultValue = (info.currentValue() == null || info.currentValue().size() <= i) ? null : info.currentValue().get(i);
             Class<?> componentType = defaultValue == null ? listType : defaultValue.getClass();
             Object value = list.get(i);
 
-            ConfigTypeSerializer<C, ?> typeSerializer = typeSerializers.get(this.config, componentType);
-            newList.add(typeSerializer.deserialize(typeSerializers, unsafeCast(componentType), unsafeCast(defaultValue), value));
+            ConfigTypeSerializer<C, ?> typeSerializer = info.typeSerializers().get(this.config, componentType);
+            newList.add(typeSerializer.deserialize(new DeserializerInfo(info.typeSerializers(), componentType, defaultValue, value)));
         }
         return newList;
     }
 
     @Override
-    public Object serialize(TypeSerializerList<C> typeSerializers, Class<List> typeClass, List object) {
-        if (object == null) return null;
-        Class<?> listType = ClassUtils.getCollectionType(object);
-        List newList = new ArrayList(object.size());
-        for (Object value : object) {
+    public Object serialize(SerializerInfo<C, List> info) {
+        if (info.value() == null) return null;
+        Class<?> listType = ClassUtils.getCollectionType(info.value());
+        List newList = new ArrayList(info.value().size());
+        for (Object value : info.value()) {
             Class<?> componentType = value == null ? listType : value.getClass();
 
-            ConfigTypeSerializer<C, ?> typeSerializer = typeSerializers.get(this.config, componentType);
-            newList.add(typeSerializer.serialize(typeSerializers, unsafeCast(componentType), unsafeCast(value)));
+            ConfigTypeSerializer<C, ?> typeSerializer = info.typeSerializers().get(this.config, componentType);
+            newList.add(typeSerializer.serialize(new SerializerInfo(info.typeSerializers(), componentType, value)));
         }
         return newList;
     }

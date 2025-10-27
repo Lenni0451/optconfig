@@ -1,5 +1,8 @@
 package net.lenni0451.optconfig.serializer;
 
+import net.lenni0451.optconfig.serializer.info.DeserializerInfo;
+import net.lenni0451.optconfig.serializer.info.SerializerInfo;
+import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import javax.annotation.Nullable;
@@ -33,6 +36,8 @@ public abstract class ConfigTypeSerializer<C, T> {
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval
     public T deserialize(final Object serializedObject) {
         throw new UnsupportedOperationException("You need to override this method or one of the other deserialize methods");
     }
@@ -45,6 +50,8 @@ public abstract class ConfigTypeSerializer<C, T> {
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval
     public T deserialize(final Class<T> typeClass, final Object serializedObject) {
         return this.deserialize(serializedObject);
     }
@@ -58,6 +65,8 @@ public abstract class ConfigTypeSerializer<C, T> {
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval
     public T deserialize(final Class<T> typeClass, final T currentValue, final Object serializedObject) {
         return this.deserialize(typeClass, serializedObject);
     }
@@ -72,8 +81,21 @@ public abstract class ConfigTypeSerializer<C, T> {
      * @param serializedObject The object to deserialize
      * @return The deserialized object
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval
     public T deserialize(final TypeSerializerList<C> typeSerializers, final Class<T> typeClass, final T currentValue, final Object serializedObject) {
         return this.deserialize(typeClass, currentValue, serializedObject);
+    }
+
+    /**
+     * Deserializes the given yaml object to the type {@code T}.
+     *
+     * @param info The deserializer info
+     * @return The deserialized object
+     * @see Tag YAML Tag for the possible types
+     */
+    public T deserialize(final DeserializerInfo<C, T> info) {
+        return this.deserialize(info.typeSerializers(), info.type(), info.currentValue(), info.serializedValue());
     }
 
     /**
@@ -83,6 +105,8 @@ public abstract class ConfigTypeSerializer<C, T> {
      * @param object The object to serialize
      * @return The serialized object
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval
     public Object serialize(final T object) {
         throw new UnsupportedOperationException("You need to override this method or one of the other serialize methods");
     }
@@ -95,6 +119,8 @@ public abstract class ConfigTypeSerializer<C, T> {
      * @param object    The object to serialize
      * @return The serialized object
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval
     public Object serialize(final Class<T> typeClass, final T object) {
         return this.serialize(object);
     }
@@ -108,8 +134,21 @@ public abstract class ConfigTypeSerializer<C, T> {
      * @param object          The object to serialize
      * @return The serialized object
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval
     public Object serialize(final TypeSerializerList<C> typeSerializers, final Class<T> typeClass, final T object) {
         return this.serialize(typeClass, object);
+    }
+
+    /**
+     * Serializes the given object to a yaml object.
+     *
+     * @param info The serializer info
+     * @return The serialized object
+     * @see Tag YAML Tag for the possible types
+     */
+    public Object serialize(final SerializerInfo<C, T> info) {
+        return this.serialize(info.typeSerializers(), info.type(), info.value());
     }
 
 }
