@@ -20,18 +20,25 @@ public class YamlUtils {
 
     public static Yaml createYaml(final Consumer<LoaderOptions> loaderOptionsConsumer, final Consumer<DumperOptions> dumperOptionsConsumer) {
         LoaderOptions loaderOptions = new LoaderOptions();
+        DumperOptions dumperOptions = new DumperOptions();
+        applyDefaultYamlOptions(loaderOptions, dumperOptions, loaderOptionsConsumer, dumperOptionsConsumer);
+        return new Yaml(new SafeConstructor(loaderOptions), new Representer(dumperOptions), dumperOptions); //Use safe constructor to prevent code execution
+    }
+
+    public static void applyDefaultYamlOptions(final LoaderOptions loaderOptions, final DumperOptions dumperOptions) {
+        applyDefaultYamlOptions(loaderOptions, dumperOptions, o -> {}, o -> {});
+    }
+
+    public static void applyDefaultYamlOptions(final LoaderOptions loaderOptions, final DumperOptions dumperOptions, final Consumer<LoaderOptions> loaderOptionsConsumer, final Consumer<DumperOptions> dumperOptionsConsumer) {
         loaderOptionsConsumer.accept(loaderOptions);
         loaderOptions.setProcessComments(true); //Enable comment parsing
 
-        DumperOptions dumperOptions = new DumperOptions();
         dumperOptions.setWidth(Integer.MAX_VALUE); //Disable line wrapping
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); //Set the default flow style to block
         dumperOptions.setIndentWithIndicator(true); //Allow lists and maps to be indented
         dumperOptions.setIndicatorIndent(2); //Set the list indent to 2
         dumperOptionsConsumer.accept(dumperOptions);
         dumperOptions.setProcessComments(true); //Enable comment writing
-
-        return new Yaml(new SafeConstructor(loaderOptions), new Representer(dumperOptions), dumperOptions); //Use safe constructor to prevent code execution
     }
 
     @Nullable
