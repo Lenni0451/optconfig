@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.serializer.impl;
 
+import lombok.RequiredArgsConstructor;
 import net.lenni0451.optconfig.exceptions.InvalidSerializedObjectException;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 import net.lenni0451.optconfig.serializer.info.DeserializerInfo;
@@ -19,28 +20,20 @@ import net.lenni0451.optconfig.serializer.info.SerializerInfo;
  * </pre>
  * All the values are valid strings, but only `key3` and `key4` are interpreted as strings by yaml.<br>
  * If `key` and `key2` are string option types, a {@link ClassCastException} will be thrown because the value is a number or boolean.
- *
- * @param <C> The type of the config instance
  */
-public class StringTypeSerializer<C> extends ConfigTypeSerializer<C, String> {
-
-    private final boolean emptyIsNull;
+@RequiredArgsConstructor
+public class StringTypeSerializer implements ConfigTypeSerializer<String> {
 
     /**
-     * @param config      The config instance
-     * @param emptyIsNull If empty strings should be deserialized as null and null serialized as empty strings
+     * If empty strings should be deserialized as null and null serialized as empty strings
      */
-    public StringTypeSerializer(final C config, final boolean emptyIsNull) {
-        super(config);
-        this.emptyIsNull = emptyIsNull;
-    }
+    private final boolean emptyIsNull;
 
     @Override
-    public String deserialize(DeserializerInfo<C, String> info) {
+    public String deserialize(DeserializerInfo<String> info) {
         if (info.serializedValue() == null) {
             return null;
-        } else if (info.serializedValue() instanceof String) {
-            String s = (String) info.serializedValue();
+        } else if (info.serializedValue() instanceof String s) {
             if (this.emptyIsNull && s.isEmpty()) return null;
             else return s;
         } else if (info.serializedValue() instanceof Number || info.serializedValue() instanceof Boolean) {
@@ -51,7 +44,7 @@ public class StringTypeSerializer<C> extends ConfigTypeSerializer<C, String> {
     }
 
     @Override
-    public Object serialize(SerializerInfo<C, String> info) {
+    public Object serialize(SerializerInfo<String> info) {
         if (this.emptyIsNull && info.value() == null) {
             return "";
         } else {

@@ -10,7 +10,6 @@ import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @ToString
 @ApiStatus.Internal
@@ -64,14 +63,13 @@ public class SectionIndex {
 
     public void sortOptions() {
         //Sort options by user given order (display order)
-        List<ConfigOption> orderedOptions = this.options.stream()
+        this.options.stream()
                 .filter(option -> option.getOrder() >= 0)
                 .sorted(Comparator.comparingInt(ConfigOption::getOrder))
-                .collect(Collectors.toList());
-        for (ConfigOption option : orderedOptions) {
-            this.optionsOrder.remove(option.getName());
-            this.optionsOrder.add(Math.min(option.getOrder(), this.optionsOrder.size()), option.getName());
-        }
+                .forEach(option -> {
+                    this.optionsOrder.remove(option.getName());
+                    this.optionsOrder.add(Math.min(option.getOrder(), this.optionsOrder.size()), option.getName());
+                });
 
         //Sort options by dependencies (load order)
         List<ConfigOption> sortedOptions = DependencySorter.sortOptions(this.options);

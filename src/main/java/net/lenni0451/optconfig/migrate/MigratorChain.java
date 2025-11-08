@@ -24,7 +24,9 @@ public class MigratorChain implements ConfigMigrator {
 
     @Override
     public void migrate(int currentVersion, Map<String, Object> loadedValues) {
-        for (ConfigIndex.Migrator migrator : this.migrators) migrator.getInstance().migrate(migrator.getFrom(), loadedValues);
+        for (ConfigIndex.Migrator migrator : this.migrators) {
+            migrator.instance().migrate(migrator.from(), loadedValues);
+        }
     }
 
 }

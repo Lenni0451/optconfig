@@ -33,7 +33,7 @@ public class ConfigLoader<C> {
     final Yaml yaml;
     final Class<C> configClass;
     private final ConfigOptions configOptions;
-    private final TypeSerializerList<C> typeSerializers;
+    private final TypeSerializerList typeSerializers;
 
     public ConfigLoader(final Class<C> configClass) {
         this(configClass, loaderOptions -> {}, dumperOptions -> {});
@@ -47,7 +47,7 @@ public class ConfigLoader<C> {
         this.yaml = yaml;
         this.configClass = configClass;
         this.configOptions = new ConfigOptions();
-        this.typeSerializers = new TypeSerializerList<>();
+        this.typeSerializers = new TypeSerializerList();
     }
 
     /**
@@ -60,7 +60,7 @@ public class ConfigLoader<C> {
     /**
      * @return The list of type serializers
      */
-    public TypeSerializerList<C> getTypeSerializers() {
+    public TypeSerializerList getTypeSerializers() {
         return this.typeSerializers;
     }
 

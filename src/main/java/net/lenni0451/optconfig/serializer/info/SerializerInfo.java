@@ -1,24 +1,20 @@
 package net.lenni0451.optconfig.serializer.info;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.With;
-import lombok.experimental.Accessors;
 import net.lenni0451.optconfig.serializer.TypeSerializerList;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 @With
-@Getter
-@RequiredArgsConstructor
-@Accessors(fluent = true)
-public class SerializerInfo<C, T> {
+public record SerializerInfo<T>(@Nullable Object configInstance, TypeSerializerList typeSerializers, Class<T> type, @Nullable Type genericType, T value) {
 
-    private final TypeSerializerList<C> typeSerializers;
-    private final Class<T> type;
-    @Nullable
-    private final Type genericType;
-    private final T value;
+    public <O> SerializerInfo<O> uncheckedDerive(final Class<?> type, @Nullable final Type genericType, final Object value) {
+        return this.derive((Class<O>) type, genericType, (O) value);
+    }
+
+    public <O> SerializerInfo<O> derive(final Class<O> type, @Nullable final Type genericType, final O value) {
+        return new SerializerInfo<>(this.configInstance, this.typeSerializers, type, genericType, value);
+    }
 
 }

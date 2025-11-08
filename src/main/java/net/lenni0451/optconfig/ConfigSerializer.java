@@ -42,8 +42,8 @@ class ConfigSerializer {
                 if (sectionIndex.getSubSections().containsKey(option)) {
                     deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), reload, configDiff.getSubSections().get(option.getName()));
                 } else {
-                    ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
-                    Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(configLoader.getTypeSerializers(), optionType, optionGenericType, optionValue, value));
+                    ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
+                    Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, optionValue, value));
                     if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
                     option.getFieldAccess().setValue(sectionInstance, deserializedValue);
                 }
@@ -66,7 +66,7 @@ class ConfigSerializer {
             throw new OutdatedClassVersionException(currentVersion, latestVersion);
         } else if (currentVersion < latestVersion) {
             ConfigIndex.Migrator migrator = configIndex.searchMigrator(configLoader, currentVersion, latestVersion);
-            migrator.getInstance().migrate(currentVersion, values);
+            migrator.instance().migrate(currentVersion, values);
         }
     }
 
@@ -89,10 +89,10 @@ class ConfigSerializer {
                     //Hidden options with their default value should not be saved
                     continue;
                 }
-                ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
+                ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
                 Object deserializedValue = optionValue;
                 if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
-                tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(new SerializerInfo(configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue))));
+                tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(new SerializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue))));
             }
             if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
@@ -104,8 +104,7 @@ class ConfigSerializer {
             }
             section.add(tuple);
         }
-        if (sectionIndex instanceof ConfigIndex) {
-            ConfigIndex configIndex = (ConfigIndex) sectionIndex;
+        if (sectionIndex instanceof ConfigIndex configIndex) {
             if (configIndex.getHeader().length > 0) {
                 List<String> lines = new ArrayList<>();
                 for (String line : configIndex.getHeader()) {

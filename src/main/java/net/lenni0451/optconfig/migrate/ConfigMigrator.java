@@ -30,7 +30,9 @@ public interface ConfigMigrator {
     default Optional<Map<String, Object>> getSection(final Map<String, Object> values, final String... path) {
         Map<String, Object> section = values;
         for (String part : path) {
-            if (!section.containsKey(part)) return Optional.empty();
+            if (!section.containsKey(part)) {
+                return Optional.empty();
+            }
             try {
                 section = (Map<String, Object>) section.get(part);
             } catch (ClassCastException e) {

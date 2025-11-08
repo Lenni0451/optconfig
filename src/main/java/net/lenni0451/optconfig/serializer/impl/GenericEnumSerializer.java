@@ -9,27 +9,23 @@ import java.util.Locale;
 
 /**
  * A generic serializer for enums.<br>
- * The enum deserialization is case-insensitive.
- *
- * @param <C> The type of the config instance
+ * The enum deserialization is case-insensitive and can also be done via the ordinal value.
  */
 @SuppressWarnings("rawtypes")
-public class GenericEnumSerializer<C> extends ConfigTypeSerializer<C, Enum> {
-
-    public GenericEnumSerializer(final C config) {
-        super(config);
-    }
+public class GenericEnumSerializer implements ConfigTypeSerializer<Enum> {
 
     @Override
-    public Enum deserialize(DeserializerInfo<C, Enum> info) {
-        if (!(info.serializedValue() instanceof String)) {
-            throw new InvalidSerializedObjectException(String.class, info.serializedValue().getClass());
+    public Enum deserialize(DeserializerInfo<Enum> info) {
+        if (info.serializedValue() instanceof Integer i) {
+            return info.type().getEnumConstants()[i];
+        } else if (info.serializedValue() instanceof String s) {
+            return Enum.valueOf(info.type(), s.toUpperCase(Locale.ROOT));
         }
-        return Enum.valueOf(info.type(), ((String) info.serializedValue()).toUpperCase(Locale.ROOT));
+        throw new InvalidSerializedObjectException(String.class, info.serializedValue().getClass());
     }
 
     @Override
-    public Object serialize(SerializerInfo<C, Enum> info) {
+    public Object serialize(SerializerInfo<Enum> info) {
         return info.value().name();
     }
 

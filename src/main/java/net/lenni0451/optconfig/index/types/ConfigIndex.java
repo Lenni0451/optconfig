@@ -1,7 +1,7 @@
 package net.lenni0451.optconfig.index.types;
 
+import lombok.Getter;
 import lombok.ToString;
-import lombok.Value;
 import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.annotations.OptConfig;
 import net.lenni0451.optconfig.index.ConfigType;
@@ -12,6 +12,7 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
 
+@Getter
 @ApiStatus.Internal
 @ToString(callSuper = true)
 public class ConfigIndex extends SectionIndex {
@@ -25,18 +26,6 @@ public class ConfigIndex extends SectionIndex {
         this.version = optConfig.version();
         this.header = optConfig.header();
         this.migrators = new HashMap<>();
-    }
-
-    public int getVersion() {
-        return this.version;
-    }
-
-    public String[] getHeader() {
-        return this.header;
-    }
-
-    public Map<MigratorIndex, Class<? extends ConfigMigrator>> getMigrators() {
-        return this.migrators;
     }
 
     public void addMigrator(final int from, final int to, final Class<? extends ConfigMigrator> migrator) {
@@ -77,19 +66,12 @@ public class ConfigIndex extends SectionIndex {
     }
 
 
-    @Value
     @ApiStatus.Internal
-    public static class MigratorIndex {
-        int from;
-        int to;
+    public record MigratorIndex(int from, int to) {
     }
 
-    @Value
     @ApiStatus.Internal
-    public static class Migrator {
-        int from;
-        int to;
-        ConfigMigrator instance;
+    public record Migrator(int from, int to, ConfigMigrator instance) {
     }
 
 }

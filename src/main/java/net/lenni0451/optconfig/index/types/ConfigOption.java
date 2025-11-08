@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.index.types;
 
+import lombok.Getter;
 import lombok.ToString;
 import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.access.types.ClassAccess;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 
+@Getter
 @ToString
 @ApiStatus.Internal
 public class ConfigOption {
@@ -47,7 +49,7 @@ public class ConfigOption {
     private final String name;
     private final String[] description;
     private final boolean reloadable;
-    private final Class<? extends ConfigTypeSerializer<?, ?>> typeSerializer;
+    private final Class<? extends ConfigTypeSerializer<?>> typeSerializer;
     private final boolean hidden;
     private final int order;
     @Nullable
@@ -66,61 +68,17 @@ public class ConfigOption {
         this.dependencies = option.dependencies();
     }
 
-    public FieldAccess getFieldAccess() {
-        return this.fieldAccess;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public String[] getDescription() {
-        return this.description;
-    }
-
-    public boolean isReloadable() {
-        return this.reloadable;
-    }
-
-    public Class<? extends ConfigTypeSerializer<?, ?>> getTypeSerializer() {
-        return this.typeSerializer;
-    }
-
-    public <C, T> ConfigTypeSerializer<C, T> createTypeSerializer(final ConfigLoader<C> configLoader, final Class<C> configClass, final C configInstance) {
+    public <C, T> ConfigTypeSerializer<T> createTypeSerializer(final ConfigLoader<C> configLoader) {
         if (this.typeSerializer == null) {
-            return unsafeCast(configLoader.getTypeSerializers().get(configInstance, this.fieldAccess.getType()));
+            return unsafeCast(configLoader.getTypeSerializers().get(this.fieldAccess.getType()));
         } else {
             ClassAccess classAccess = configLoader.getConfigOptions().getClassAccessFactory().create(this.typeSerializer);
-            Class<?> currentClass = configClass;
-            ConstructorAccess constructor;
-            do {
-                //Try to get the constructor for the config class or its super classes
-                constructor = classAccess.tryGetConstructor(currentClass);
-            } while (constructor == null && (currentClass = currentClass.getSuperclass()) != null);
-            if (constructor == null) constructor = classAccess.tryGetConstructor(); //If no fitting constructor was found try to get the default constructor
+            ConstructorAccess constructor = classAccess.tryGetConstructor();
             if (constructor == null) {
-                //No constructor found
-                throw new IllegalArgumentException("No config (" + configClass.getName() + ") constructor found for type serializer: " + this.typeSerializer.getName());
+                throw new IllegalArgumentException("No void constructor found for type serializer: " + this.typeSerializer.getName());
             }
-            return unsafeCast(constructor.newInstance(configInstance));
+            return unsafeCast(constructor.newInstance());
         }
-    }
-
-    public boolean isHidden() {
-        return this.hidden;
-    }
-
-    public int getOrder() {
-        return this.order;
-    }
-
-    @Nullable
-    public MethodAccess getValidator() {
-        return this.validator;
-    }
-
-    public String[] getDependencies() {
-        return this.dependencies;
     }
 
 }

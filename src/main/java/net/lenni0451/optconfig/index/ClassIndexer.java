@@ -5,12 +5,12 @@ import net.lenni0451.optconfig.access.types.ClassAccess;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
 import net.lenni0451.optconfig.annotations.*;
-import net.lenni0451.optconfig.annotations.internal.DummyNotReloadable;
 import net.lenni0451.optconfig.annotations.internal.Migrators;
 import net.lenni0451.optconfig.exceptions.InvalidValidatorException;
 import net.lenni0451.optconfig.exceptions.UnknownDependencyException;
 import net.lenni0451.optconfig.index.dummy.DummyDescription;
 import net.lenni0451.optconfig.index.dummy.DummyFieldAccess;
+import net.lenni0451.optconfig.index.dummy.DummyNotReloadable;
 import net.lenni0451.optconfig.index.dummy.DummyOption;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
@@ -129,8 +129,7 @@ public class ClassIndexer {
     }
 
     private static void addInMemoryFields(final SectionIndex sectionIndex) {
-        if (sectionIndex instanceof ConfigIndex) {
-            ConfigIndex configIndex = (ConfigIndex) sectionIndex;
+        if (sectionIndex instanceof ConfigIndex configIndex) {
             if (configIndex.getVersion() != OptConfig.DEFAULT_VERSION) {
                 configIndex.addOption(new ConfigOption(
                         new DummyFieldAccess(OptConfig.CONFIG_VERSION_OPTION, int.class, configIndex.getVersion()),
