@@ -25,7 +25,7 @@ import net.lenni0451.optconfig.serializer.info.SerializerInfo;
 public class StringTypeSerializer implements ConfigTypeSerializer<String> {
 
     /**
-     * If empty strings should be deserialized as null and null serialized as empty strings
+     * If empty strings should be deserialized as null and null serialized as empty strings.
      */
     private final boolean emptyIsNull;
 
