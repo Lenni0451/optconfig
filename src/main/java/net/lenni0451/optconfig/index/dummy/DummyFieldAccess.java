@@ -5,6 +5,7 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 
 @ApiStatus.Internal
 public class DummyFieldAccess implements FieldAccess {
@@ -27,6 +28,11 @@ public class DummyFieldAccess implements FieldAccess {
     @Override
     public Class<?> getType() {
         return this.type;
+    }
+
+    @Override
+    public Type getGenericType() {
+        return null;
     }
 
     @Override

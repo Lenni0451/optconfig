@@ -17,6 +17,7 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.util.*;
 
 import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
@@ -37,11 +38,12 @@ class ConfigSerializer {
                 Object value = values.get(option.getName());
                 Object optionValue = option.getFieldAccess().getValue(sectionInstance);
                 Class<?> optionType = option.getFieldAccess().getType();
+                Type optionGenericType = option.getFieldAccess().getGenericType();
                 if (sectionIndex.getSubSections().containsKey(option)) {
                     deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), reload, configDiff.getSubSections().get(option.getName()));
                 } else {
                     ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
-                    Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(configLoader.getTypeSerializers(), optionType, optionValue, value));
+                    Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(configLoader.getTypeSerializers(), optionType, optionGenericType, optionValue, value));
                     if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
                     option.getFieldAccess().setValue(sectionInstance, deserializedValue);
                 }
@@ -77,6 +79,7 @@ class ConfigSerializer {
             if (option == null) throw new IllegalStateException("Section index is desynchronized with options order");
             Object optionValue = option.getFieldAccess().getValue(sectionInstance);
             Class<?> optionType = option.getFieldAccess().getType();
+            Type optionGenericType = option.getFieldAccess().getGenericType();
             NodeTuple tuple;
             if (sectionIndex.getSubSections().containsKey(option)) {
                 MappingNode subSection = serializeSection(configLoader, configContext, configInstance, sectionIndex.getSubSections().get(option), optionValue);
@@ -89,7 +92,7 @@ class ConfigSerializer {
                 ConfigTypeSerializer<C, ?> typeSerializer = option.createTypeSerializer(configLoader, configLoader.configClass, configInstance);
                 Object deserializedValue = optionValue;
                 if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
-                tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(new SerializerInfo(configLoader.getTypeSerializers(), optionType, deserializedValue))));
+                tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(new SerializerInfo(configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue))));
             }
             if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());

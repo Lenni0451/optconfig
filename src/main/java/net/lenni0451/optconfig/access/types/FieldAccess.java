@@ -2,6 +2,7 @@ package net.lenni0451.optconfig.access.types;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 
 /**
  * A field which can be accessed by optconfig (e.g. using reflection).
@@ -19,6 +20,12 @@ public interface FieldAccess {
      * @see Field#getType()
      */
     Class<?> getType();
+
+    /**
+     * @return The generic type of the field
+     * @see Field#getGenericType()
+     */
+    Type getGenericType();
 
     /**
      * @return The modifiers of the field

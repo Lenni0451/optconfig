@@ -5,6 +5,7 @@ import net.lenni0451.optconfig.access.types.FieldAccess;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 
 /**
  * A default implementation of {@link FieldAccess} using reflection.
@@ -30,6 +31,11 @@ public class ReflectionFieldAccess implements FieldAccess {
     @Override
     public Class<?> getType() {
         return this.field.getType();
+    }
+
+    @Override
+    public Type getGenericType() {
+        return this.field.getGenericType();
     }
 
     @Override
