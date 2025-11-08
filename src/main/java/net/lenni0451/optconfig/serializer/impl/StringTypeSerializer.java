@@ -19,7 +19,7 @@ import net.lenni0451.optconfig.serializer.info.SerializerInfo;
  *     key4: string
  * </pre>
  * All the values are valid strings, but only `key3` and `key4` are interpreted as strings by yaml.<br>
- * If `key` and `key2` are string option types, a {@link ClassCastException} will be thrown because the value is a number or boolean.
+ * If `key` and `key2` are string option types, a {@link ClassCastException} would be thrown because the value is a number or boolean.
  */
 @RequiredArgsConstructor
 public class StringTypeSerializer implements ConfigTypeSerializer<String> {
