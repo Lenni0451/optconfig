@@ -87,11 +87,7 @@ public class ConfigLoader<C> {
      * @throws IOException If an I/O error occurs
      */
     public ConfigContext<C> load(final C config, final ConfigProvider configProvider) throws IOException {
-        SectionIndex index = ClassIndexer.indexClass(ConfigType.INSTANCED, this.configClass, this.configOptions.getClassAccessFactory());
-        if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
-        if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
-        index.initSubSections(this, config);
-
+        SectionIndex index = this.loadSection(ConfigType.INSTANCED, config);
         ConfigContext<C> configContext = new ConfigContext<>(this, config, configProvider, (ConfigIndex) index);
         this.parseSection(index, configContext, config, configProvider, false);
         return configContext;
@@ -105,13 +101,31 @@ public class ConfigLoader<C> {
      * @throws IOException If an I/O error occurs
      */
     public ConfigContext<C> loadStatic(final ConfigProvider configProvider) throws IOException {
-        SectionIndex index = ClassIndexer.indexClass(ConfigType.STATIC, this.configClass, this.configOptions.getClassAccessFactory());
-        if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
-        if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
-
+        SectionIndex index = this.loadSection(ConfigType.STATIC, null);
         ConfigContext<C> configContext = new ConfigContext<>(this, null, configProvider, (ConfigIndex) index);
         this.parseSection(index, configContext, null, configProvider, false);
         return configContext;
+    }
+
+    private SectionIndex loadSection(final ConfigType configType, final C config) {
+        SectionIndex index = ClassIndexer.indexClass(configType, this.configClass, this.configOptions.getClassAccessFactory());
+        if (!(index instanceof ConfigIndex)) throw new ConfigNotAnnotatedException(this.configClass);
+        if (index.isEmpty()) throw new EmptyConfigException(this.configClass);
+        switch (configType) {
+            case STATIC -> {
+                if (config != null) {
+                    throw new IllegalArgumentException("Config instance must be null for STATIC config type");
+                }
+            }
+            case INSTANCED -> {
+                if (config == null) {
+                    throw new NullPointerException("Config instance cannot be null for INSTANCED config type");
+                } else {
+                    index.initSubSections(this, config);
+                }
+            }
+        }
+        return index;
     }
 
     void parseSection(final SectionIndex sectionIndex, final ConfigContext<C> configContext, @Nullable final C instance, final ConfigProvider configProvider, final boolean reload) throws IOException {
