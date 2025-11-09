@@ -1,9 +1,11 @@
 package net.lenni0451.optconfig.index.dummy;
 
 import net.lenni0451.optconfig.annotations.Option;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.annotation.Annotation;
 
+@ApiStatus.Internal
 public class DummyOption implements Option {
 
     private final String value;
