@@ -4,6 +4,7 @@ import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.provider.ConfigProvider;
+import net.lenni0451.optconfig.serializer.ConfigSerializer;
 import net.lenni0451.optconfig.utils.YamlUtils;
 import org.yaml.snakeyaml.nodes.MappingNode;
 
@@ -75,7 +76,7 @@ public class ConfigContext<C> {
      * @throws IllegalAccessException If the config class or options are not accessible
      */
     public void save() throws IOException, IllegalAccessException {
-        MappingNode serializedSection = ConfigSerializer.serializeSection(this.configLoader, this, this.configInstance, this.configIndex, this.configInstance);
+        MappingNode serializedSection = ConfigSerializer.serializeSection(this.configLoader, this.defaultValues, this.configInstance, this.configIndex, this.configInstance);
         if (this.configLoader.getConfigOptions().isRewriteConfig()) {
             //If the config should be rewritten, just save the serialized section
             this.configLoader.save(serializedSection, this.configProvider);

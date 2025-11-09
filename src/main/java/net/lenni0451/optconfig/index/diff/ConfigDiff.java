@@ -1,4 +1,4 @@
-package net.lenni0451.optconfig.index;
+package net.lenni0451.optconfig.index.diff;
 
 import net.lenni0451.optconfig.annotations.OptConfig;
 import net.lenni0451.optconfig.index.types.ConfigOption;

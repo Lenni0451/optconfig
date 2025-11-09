@@ -1,7 +1,10 @@
-package net.lenni0451.optconfig;
+package net.lenni0451.optconfig.index.diff;
 
-import net.lenni0451.optconfig.index.ConfigDiff;
+import net.lenni0451.optconfig.ConfigLoader;
+import net.lenni0451.optconfig.ConfigOptions;
+import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
+import net.lenni0451.optconfig.serializer.ConfigSerializer;
 import net.lenni0451.optconfig.utils.YamlUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.nodes.MappingNode;
@@ -12,13 +15,13 @@ import java.io.StringReader;
 import java.util.Map;
 
 @ApiStatus.Internal
-class DiffMerger {
+public class DiffMerger {
 
-    static <C> MappingNode merge(final ConfigLoader<C> configLoader, final ConfigContext<C> configContext, final String fileContent, final SectionIndex sectionIndex, final ConfigDiff configDiff, @Nullable final C instance) {
+    public static <C> MappingNode merge(final ConfigLoader<C> configLoader, final Map<ConfigOption, Object> defaultValues, final String fileContent, final SectionIndex sectionIndex, final ConfigDiff configDiff, @Nullable final C instance) {
         //Some values in the config have changed
         //Load the config as Nodes and apply the differences to keep comments and formatting
-        MappingNode serializedNode = ConfigSerializer.serializeSection(configLoader, configContext, instance, sectionIndex, instance); //Used for copying over nodes
-        MappingNode readNode = (MappingNode) configLoader.yaml.compose(new StringReader(fileContent));
+        MappingNode serializedNode = ConfigSerializer.serializeSection(configLoader, defaultValues, instance, sectionIndex, instance); //Used for copying over nodes
+        MappingNode readNode = (MappingNode) configLoader.getYaml().compose(new StringReader(fileContent));
         doMerge(configLoader.getConfigOptions(), configDiff, readNode, serializedNode);
         return readNode;
     }

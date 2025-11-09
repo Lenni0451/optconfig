@@ -1,13 +1,16 @@
 package net.lenni0451.optconfig;
 
+import lombok.Getter;
 import net.lenni0451.optconfig.exceptions.ConfigNotAnnotatedException;
 import net.lenni0451.optconfig.exceptions.EmptyConfigException;
 import net.lenni0451.optconfig.index.ClassIndexer;
-import net.lenni0451.optconfig.index.ConfigDiff;
 import net.lenni0451.optconfig.index.ConfigType;
+import net.lenni0451.optconfig.index.diff.ConfigDiff;
+import net.lenni0451.optconfig.index.diff.DiffMerger;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import net.lenni0451.optconfig.provider.ConfigProvider;
+import net.lenni0451.optconfig.serializer.ConfigSerializer;
 import net.lenni0451.optconfig.serializer.TypeSerializerList;
 import net.lenni0451.optconfig.utils.ReflectionUtils;
 import net.lenni0451.optconfig.utils.YamlUtils;
@@ -28,6 +31,7 @@ import java.util.function.Consumer;
  *
  * @param <C> The type of the config instance
  */
+@Getter
 public class ConfigLoader<C> {
 
     final Yaml yaml;
@@ -48,20 +52,6 @@ public class ConfigLoader<C> {
         this.configClass = configClass;
         this.configOptions = new ConfigOptions();
         this.typeSerializers = new TypeSerializerList();
-    }
-
-    /**
-     * @return The config options
-     */
-    public ConfigOptions getConfigOptions() {
-        return this.configOptions;
-    }
-
-    /**
-     * @return The list of type serializers
-     */
-    public TypeSerializerList getTypeSerializers() {
-        return this.typeSerializers;
     }
 
     /**
@@ -139,7 +129,7 @@ public class ConfigLoader<C> {
                 //If the config should be rewritten anyway, this step is not necessary
                 //On reloads also only apply differences because overwriting the config now would revert not reloadable options
                 if (!configDiff.isEmpty()) {
-                    MappingNode mergedNode = DiffMerger.merge(this, configContext, content, sectionIndex, configDiff, instance);
+                    MappingNode mergedNode = DiffMerger.merge(this, configContext.defaultValues, content, sectionIndex, configDiff, instance);
                     this.save(mergedNode, configProvider);
                 }
                 return;
@@ -147,7 +137,7 @@ public class ConfigLoader<C> {
         }
         //If the file does not exist, simply serialize the default values
         //This also applies if ConfigOptions.isRewriteConfig() is true
-        MappingNode node = ConfigSerializer.serializeSection(this, configContext, instance, sectionIndex, instance);
+        MappingNode node = ConfigSerializer.serializeSection(this, configContext.defaultValues, instance, sectionIndex, instance);
         this.save(node, configProvider);
     }
 

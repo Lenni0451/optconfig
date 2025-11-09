@@ -1,12 +1,13 @@
-package net.lenni0451.optconfig;
+package net.lenni0451.optconfig.serializer;
 
+import net.lenni0451.optconfig.ConfigLoader;
+import net.lenni0451.optconfig.ConfigOptions;
 import net.lenni0451.optconfig.annotations.OptConfig;
 import net.lenni0451.optconfig.exceptions.OutdatedClassVersionException;
-import net.lenni0451.optconfig.index.ConfigDiff;
+import net.lenni0451.optconfig.index.diff.ConfigDiff;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
-import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 import net.lenni0451.optconfig.serializer.info.DeserializerInfo;
 import net.lenni0451.optconfig.serializer.info.SerializerInfo;
 import net.lenni0451.optconfig.utils.YamlUtils;
@@ -23,9 +24,9 @@ import java.util.*;
 import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 
 @ApiStatus.Internal
-class ConfigSerializer {
+public class ConfigSerializer {
 
-    static <C> ConfigDiff deserializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance, final Map<String, Object> values, final boolean reload, ConfigDiff configDiff) {
+    public static <C> ConfigDiff deserializeSection(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance, final Map<String, Object> values, final boolean reload, ConfigDiff configDiff) {
         if (sectionIndex instanceof ConfigIndex) {
             configDiff = ConfigDiff.diff(sectionIndex, values);
             runMigration(configLoader, (ConfigIndex) sectionIndex, values);
@@ -70,7 +71,7 @@ class ConfigSerializer {
         }
     }
 
-    static <C> MappingNode serializeSection(final ConfigLoader<C> configLoader, final ConfigContext<C> configContext, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance) {
+    public static <C> MappingNode serializeSection(final ConfigLoader<C> configLoader, final Map<ConfigOption, Object> defaultValues, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance) {
         ConfigOptions options = configLoader.getConfigOptions();
         List<NodeTuple> section = new ArrayList<>();
         MappingNode rootNode = new MappingNode(Tag.MAP, section, DumperOptions.FlowStyle.BLOCK);
@@ -82,17 +83,17 @@ class ConfigSerializer {
             Type optionGenericType = option.getFieldAccess().getGenericType();
             NodeTuple tuple;
             if (sectionIndex.getSubSections().containsKey(option)) {
-                MappingNode subSection = serializeSection(configLoader, configContext, configInstance, sectionIndex.getSubSections().get(option), optionValue);
-                tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), subSection);
+                MappingNode subSection = serializeSection(configLoader, defaultValues, configInstance, sectionIndex.getSubSections().get(option), optionValue);
+                tuple = new NodeTuple(configLoader.getYaml().represent(option.getName()), subSection);
             } else {
-                if (option.isHidden() && options.getDefaultValueComparator().test(configContext.defaultValues.get(option), optionValue)) {
+                if (option.isHidden() && options.getDefaultValueComparator().test(defaultValues.get(option), optionValue)) {
                     //Hidden options with their default value should not be saved
                     continue;
                 }
                 ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
                 Object deserializedValue = optionValue;
                 if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
-                tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(new SerializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue))));
+                tuple = new NodeTuple(configLoader.getYaml().represent(option.getName()), configLoader.getYaml().represent(typeSerializer.serialize(new SerializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue))));
             }
             if (!section.isEmpty() && options.isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
