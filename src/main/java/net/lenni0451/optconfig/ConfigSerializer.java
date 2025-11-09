@@ -85,7 +85,7 @@ class ConfigSerializer {
                 MappingNode subSection = serializeSection(configLoader, configContext, configInstance, sectionIndex.getSubSections().get(option), optionValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), subSection);
             } else {
-                if (option.isHidden() && configLoader.getConfigOptions().getDefaultValueComparator().test(configContext.defaultValues.get(option), optionValue)) {
+                if (option.isHidden() && options.getDefaultValueComparator().test(configContext.defaultValues.get(option), optionValue)) {
                     //Hidden options with their default value should not be saved
                     continue;
                 }
@@ -94,9 +94,9 @@ class ConfigSerializer {
                 if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
                 tuple = new NodeTuple(configLoader.yaml.represent(option.getName()), configLoader.yaml.represent(typeSerializer.serialize(new SerializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue))));
             }
-            if (!section.isEmpty() && configLoader.getConfigOptions().isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
+            if (!section.isEmpty() && options.isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
-            if (!option.isReloadable() && configLoader.getConfigOptions().isNotReloadableComment()) {
+            if (!option.isReloadable() && options.isNotReloadableComment()) {
                 YamlUtils.appendComment(tuple, options.getCommentSpacing(), "This option is not reloadable.");
                 if (sectionIndex.getSubSections().containsKey(option)) {
                     YamlUtils.appendComment(tuple, options.getCommentSpacing(), "This applies to all options in this section.");
