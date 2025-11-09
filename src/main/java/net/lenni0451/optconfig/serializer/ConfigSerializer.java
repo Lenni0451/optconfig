@@ -93,7 +93,10 @@ public class ConfigSerializer {
                 ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
                 Object deserializedValue = optionValue;
                 if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
-                tuple = new NodeTuple(configLoader.getYaml().represent(option.getName()), configLoader.getYaml().represent(typeSerializer.serialize(new SerializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue))));
+                tuple = new NodeTuple(
+                        configLoader.getYaml().represent(option.getName()),
+                        configLoader.getYaml().represent(typeSerializer.serialize(new SerializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue)))
+                );
             }
             if (!section.isEmpty() && options.isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());

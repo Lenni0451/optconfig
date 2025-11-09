@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig;
 
+import lombok.Getter;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
@@ -14,8 +15,11 @@ import java.util.Map;
 
 public class ConfigContext<C> {
 
+    @Getter
     private final ConfigLoader<C> configLoader;
+    @Getter
     private final C configInstance;
+    @Getter
     private final ConfigProvider configProvider;
     private final ConfigIndex configIndex;
     final Map<ConfigOption, Object> defaultValues;
@@ -33,7 +37,7 @@ public class ConfigContext<C> {
     private void setContextField() {
         try {
             FieldAccess contextField = null;
-            for (FieldAccess field : this.configLoader.getConfigOptions().getClassAccessFactory().create(this.configLoader.configClass).getFields()) {
+            for (FieldAccess field : this.configLoader.getConfigOptions().getClassAccessFactory().create(this.configLoader.getConfigClass()).getFields()) {
                 if (!this.configIndex.getConfigType().matches(field.getModifiers())) continue;
                 if (!ConfigContext.class.isAssignableFrom(field.getType())) continue;
                 contextField = field;
@@ -43,20 +47,6 @@ public class ConfigContext<C> {
         } catch (Throwable ignored) {
             //Not critical
         }
-    }
-
-    /**
-     * @return The config class
-     */
-    public Class<C> getConfigClass() {
-        return this.configLoader.configClass;
-    }
-
-    /**
-     * @return The config instance (null for static configs)
-     */
-    public C getConfigInstance() {
-        return this.configInstance;
     }
 
     /**
@@ -82,7 +72,7 @@ public class ConfigContext<C> {
             this.configLoader.save(serializedSection, this.configProvider);
         } else {
             //If the config should not be rewritten, copy over comments and formatting
-            MappingNode readNode = (MappingNode) this.configLoader.yaml.compose(new StringReader(this.configProvider.load()));
+            MappingNode readNode = (MappingNode) this.configLoader.getYaml().compose(new StringReader(this.configProvider.load()));
             YamlUtils.copyValues(serializedSection, readNode);
             this.configLoader.save(readNode, this.configProvider);
         }

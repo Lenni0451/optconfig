@@ -34,8 +34,8 @@ import java.util.function.Consumer;
 @Getter
 public class ConfigLoader<C> {
 
-    final Yaml yaml;
-    final Class<C> configClass;
+    private final Yaml yaml;
+    private final Class<C> configClass;
     private final ConfigOptions configOptions;
     private final TypeSerializerList typeSerializers;
 
