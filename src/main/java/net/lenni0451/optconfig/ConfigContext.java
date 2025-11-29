@@ -20,6 +20,12 @@ import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.util.*;
 
+/**
+ * The context of a loaded config instance.<br>
+ * Allows reloading and saving the config as well as loading and printing CLI options.
+ *
+ * @param <C> The config class type
+ */
 public class ConfigContext<C> {
 
     @Getter

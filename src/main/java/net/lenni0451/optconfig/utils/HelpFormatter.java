@@ -11,9 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * Formatter to create help messages with multiple columns.
+ */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class HelpFormatter {
 
+    /**
+     * @return A new builder for a {@link HelpFormatter}
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -29,11 +35,23 @@ public class HelpFormatter {
 
     private final List<String>[] columns;
 
+    /**
+     * Add a text to a specific column.
+     *
+     * @param column The column index
+     * @param text   The text to add
+     * @return This instance for chaining
+     */
     public HelpFormatter add(final int column, final String text) {
         this.columns[column].add(text);
         return this;
     }
 
+    /**
+     * Pad all columns to have the same number of rows.
+     *
+     * @return This instance for chaining
+     */
     public HelpFormatter pad() {
         int maxRows = Stream.of(this.columns).mapToInt(List::size).max().orElse(0);
         for (List<String> column : this.columns) {
@@ -90,8 +108,22 @@ public class HelpFormatter {
     }
 
 
+    /**
+     * How to separate the header from the rest of the table.
+     */
     public enum HeaderSeparator {
-        NONE, HEADER_WIDTH, COLUMN_WIDTH
+        /**
+         * No separator, the header will be directly above the first row.
+         */
+        NONE,
+        /**
+         * A separator with the width of the header text for each column.
+         */
+        HEADER_WIDTH,
+        /**
+         * A separator with the width of the entire column.
+         */
+        COLUMN_WIDTH
     }
 
     @Setter

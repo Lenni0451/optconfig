@@ -3,6 +3,9 @@ package net.lenni0451.optconfig.utils;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
+/**
+ * Utility functions for arrays.
+ */
 public class ArrayUtils {
 
     /**

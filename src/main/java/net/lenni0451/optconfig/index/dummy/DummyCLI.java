@@ -1,9 +1,11 @@
 package net.lenni0451.optconfig.index.dummy;
 
 import net.lenni0451.optconfig.annotations.CLI;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.annotation.Annotation;
 
+@ApiStatus.Internal
 public class DummyCLI implements CLI {
 
     @Override

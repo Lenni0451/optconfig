@@ -4,6 +4,9 @@ import net.lenni0451.optconfig.cli.CLIOption;
 
 import java.util.List;
 
+/**
+ * Exception thrown during CLI parsing.
+ */
 public class CLIParserException extends Exception {
 
     public static CLIParserException valueWithoutOption(final String value) {

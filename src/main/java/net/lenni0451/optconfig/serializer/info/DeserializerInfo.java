@@ -6,6 +6,17 @@ import net.lenni0451.optconfig.serializer.TypeSerializerList;
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
+/**
+ * Information about a deserialization process.
+ *
+ * @param configInstance  The config instance or null for static deserialization
+ * @param typeSerializers The list of type serializers
+ * @param type            The type of the config option
+ * @param genericType     The generic type of the config option
+ * @param currentValue    The current value of the config option
+ * @param serializedValue The serialized value of the config option
+ * @param <T>             The type of the config option
+ */
 @With
 public record DeserializerInfo<T>(@Nullable Object configInstance, TypeSerializerList typeSerializers, Class<T> type, @Nullable Type genericType, T currentValue,
         Object serializedValue) {

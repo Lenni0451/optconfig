@@ -4,6 +4,9 @@ import net.lenni0451.optconfig.annotations.CLI;
 
 import java.util.Stack;
 
+/**
+ * Exception thrown when an option is incompatible with the CLI.
+ */
 public class CLIIncompatibleOptionException extends RuntimeException {
 
     public static CLIIncompatibleOptionException invalidList(final Stack<String> path, final String name) {

@@ -2,8 +2,19 @@ package net.lenni0451.optconfig.utils;
 
 import java.util.Collection;
 
+/**
+ * Utility functions for classes.
+ */
 public class ClassUtils {
 
+    /**
+     * Try to guess the type of a collection by checking all its elements.<br>
+     * The common superclass of all non null elements will be returned.<br>
+     * If the collection is null or empty, {@link Object} will be returned.
+     *
+     * @param collection The collection to check
+     * @return The common type of the collection
+     */
     public static Class<?> getCollectionType(final Collection<?> collection) {
         if (collection == null || collection.isEmpty()) return Object.class;
         Class<?> type = null;
@@ -15,6 +26,13 @@ public class ClassUtils {
         return type;
     }
 
+    /**
+     * Get the common superclass of two types.
+     *
+     * @param type1 The first type
+     * @param type2 The second type
+     * @return The common superclass of both types
+     */
     public static Class<?> getCommonType(final Class<?> type1, final Class<?> type2) {
         if (type1 == null && type2 == null) return Object.class;
         if (type1 == null) return type2;
