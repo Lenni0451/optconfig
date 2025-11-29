@@ -8,10 +8,7 @@ import net.lenni0451.optconfig.annotations.*;
 import net.lenni0451.optconfig.annotations.internal.Migrators;
 import net.lenni0451.optconfig.exceptions.InvalidValidatorException;
 import net.lenni0451.optconfig.exceptions.UnknownDependencyException;
-import net.lenni0451.optconfig.index.dummy.DummyDescription;
-import net.lenni0451.optconfig.index.dummy.DummyFieldAccess;
-import net.lenni0451.optconfig.index.dummy.DummyNotReloadable;
-import net.lenni0451.optconfig.index.dummy.DummyOption;
+import net.lenni0451.optconfig.index.dummy.*;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
@@ -84,7 +81,8 @@ public class ClassIndexer {
             TypeSerializer typeSerializer = field.getAnnotation(TypeSerializer.class);
             Hidden hidden = field.getAnnotation(Hidden.class);
             Order order = field.getAnnotation(Order.class);
-            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, validatorMethods, classAccess);
+            CLI cli = field.getAnnotation(CLI.class);
+            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, cli, validatorMethods, classAccess);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }
@@ -109,6 +107,7 @@ public class ClassIndexer {
                         new DummyOption(section.name()),
                         new DummyDescription(section.description()),
                         section.reloadable() ? null : new DummyNotReloadable(),
+                        null,
                         null,
                         null,
                         null,
@@ -139,6 +138,7 @@ public class ClassIndexer {
                         null,
                         null,
                         null,
+                        new DummyCLI(),
                         Collections.emptyMap(),
                         null
                 ));

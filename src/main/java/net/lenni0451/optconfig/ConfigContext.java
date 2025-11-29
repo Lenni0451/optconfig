@@ -2,16 +2,23 @@ package net.lenni0451.optconfig;
 
 import lombok.Getter;
 import net.lenni0451.optconfig.access.types.FieldAccess;
+import net.lenni0451.optconfig.cli.CLIHelpBuilder;
+import net.lenni0451.optconfig.cli.CLIOption;
+import net.lenni0451.optconfig.cli.CLIParser;
+import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
+import net.lenni0451.optconfig.exceptions.CLIParserException;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.provider.ConfigProvider;
 import net.lenni0451.optconfig.serializer.ConfigSerializer;
+import net.lenni0451.optconfig.utils.HelpFormatter;
 import net.lenni0451.optconfig.utils.YamlUtils;
 import org.yaml.snakeyaml.nodes.MappingNode;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Map;
+import java.io.UncheckedIOException;
+import java.util.*;
 
 public class ConfigContext<C> {
 
@@ -76,6 +83,56 @@ public class ConfigContext<C> {
             YamlUtils.copyValues(serializedSection, readNode);
             this.configLoader.save(readNode, this.configProvider);
         }
+    }
+
+    /**
+     * Print CLI help to the given Appendable (e.g. {@code System.out}).
+     *
+     * @param out The Appendable to print the help to
+     * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
+     */
+    public void printCLIHelp(final Appendable out) throws CLIIncompatibleOptionException {
+        HelpFormatter formatter = HelpFormatter.builder().columnCount(2).headers("Option", "Description").build();
+        this.buildCLIHelp(formatter);
+        try {
+            out.append(formatter.toString());
+            out.append('\n');
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Build CLI help using the given formatter.
+     *
+     * @param formatter The help formatter
+     * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
+     */
+    public void buildCLIHelp(final HelpFormatter formatter) throws CLIIncompatibleOptionException {
+        if (formatter.getColumnCount() < 2) {
+            throw new IllegalArgumentException("CLI help formatter must have at least 2 columns");
+        }
+        List<CLIOption> cliOptions = new ArrayList<>();
+        //Populate CLI options
+        ConfigSerializer.parseCLIOptions(this.configLoader, this.configInstance, this.configIndex, this.configInstance, new Stack<>(), cliOptions);
+        CLIHelpBuilder.build(formatter, cliOptions);
+    }
+
+    /**
+     * Load CLI options from the given arguments.
+     *
+     * @param args                    The CLI arguments
+     * @param setNotReloadableOptions If true, not reloadable options will also be set from the CLI arguments
+     * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
+     * @throws CLIParserException             If the user provided invalid CLI arguments
+     */
+    public void loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException {
+        List<CLIOption> cliOptions = new ArrayList<>();
+        //Populate CLI options
+        ConfigSerializer.parseCLIOptions(this.configLoader, this.configInstance, this.configIndex, this.configInstance, new Stack<>(), cliOptions);
+        Map<String, Object> values = new HashMap<>();
+        CLIParser.parse(this.configLoader.getYaml(), cliOptions, args, values);
+        ConfigSerializer.deserializeSection(this.configLoader, this.configInstance, this.configIndex, this.configInstance, values, !setNotReloadableOptions, null);
     }
 
 }

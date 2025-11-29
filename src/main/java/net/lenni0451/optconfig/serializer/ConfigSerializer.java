@@ -3,6 +3,8 @@ package net.lenni0451.optconfig.serializer;
 import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.ConfigOptions;
 import net.lenni0451.optconfig.annotations.OptConfig;
+import net.lenni0451.optconfig.cli.CLIOption;
+import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
 import net.lenni0451.optconfig.exceptions.OutdatedClassVersionException;
 import net.lenni0451.optconfig.index.diff.ConfigDiff;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
@@ -13,9 +15,7 @@ import net.lenni0451.optconfig.serializer.info.SerializerInfo;
 import net.lenni0451.optconfig.utils.YamlUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.nodes.MappingNode;
-import org.yaml.snakeyaml.nodes.NodeTuple;
-import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.nodes.*;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
@@ -125,6 +125,40 @@ public class ConfigSerializer {
             }
         }
         return rootNode;
+    }
+
+    public static <C> void parseCLIOptions(final ConfigLoader<C> configLoader, @Nullable final C configInstance, final SectionIndex sectionIndex, @Nullable final Object sectionInstance, final Stack<String> path, final List<CLIOption> cliOptions) {
+        for (String optionName : sectionIndex.getOptionsOrder()) {
+            ConfigOption option = sectionIndex.getOption(optionName);
+            if (option == null) throw new IllegalStateException("Section index is desynchronized with options order");
+            Object optionValue = option.getFieldAccess().getValue(sectionInstance);
+            Class<?> optionType = option.getFieldAccess().getType();
+            Type optionGenericType = option.getFieldAccess().getGenericType();
+            if (sectionIndex.getSubSections().containsKey(option)) {
+                path.push(option.getName());
+                try {
+                    parseCLIOptions(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, path, cliOptions);
+                } finally {
+                    path.pop();
+                }
+            } else {
+                ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
+                Object deserializedValue = optionValue;
+                if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
+
+                Node valueNode = configLoader.getYaml().represent(typeSerializer.serialize(new SerializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue)));
+                if (valueNode instanceof SequenceNode sequenceNode) {
+                    for (Node node : sequenceNode.getValue()) {
+                        if (!(node instanceof ScalarNode)) {
+                            throw CLIIncompatibleOptionException.invalidList(path, option.getName());
+                        }
+                    }
+                } else if (valueNode instanceof MappingNode) {
+                    throw CLIIncompatibleOptionException.invalidOption(path, option.getName());
+                }
+                cliOptions.add(new CLIOption(path.toArray(new String[0]), sectionInstance, option, deserializedValue, valueNode));
+            }
+        }
     }
 
 }

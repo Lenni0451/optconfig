@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.provider;
 
+import net.lenni0451.optconfig.provider.impl.EmptyConfigProvider;
 import net.lenni0451.optconfig.provider.impl.MemoryConfigProvider;
 import net.lenni0451.optconfig.provider.impl.PathConfigProvider;
 
@@ -54,6 +55,17 @@ public interface ConfigProvider {
      */
     static MemoryConfigProvider memory(final Supplier<String> contentSupplier, final Consumer<String> contentConsumer) {
         return new MemoryConfigProvider(contentSupplier, contentConsumer);
+    }
+
+    /**
+     * Create a new {@link EmptyConfigProvider}.<br>
+     * This provider always returns an empty string and does nothing on save.<br>
+     * Can be used if the config is only used for CLI purposes.
+     *
+     * @return The created {@link EmptyConfigProvider}
+     */
+    static EmptyConfigProvider empty() {
+        return new EmptyConfigProvider();
     }
 
 

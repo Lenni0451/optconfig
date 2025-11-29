@@ -26,8 +26,10 @@ import static net.lenni0451.optconfig.utils.ReflectionUtils.unsafeCast;
 @ApiStatus.Internal
 public class ConfigOption {
 
+    private static final String[] EMPTY_STRING_ARRAY = new String[0];
+
     private static String[] getDescription(final String option, @Nullable final Description description, @Nullable final ClassAccess classAccess) {
-        if (description == null) return new String[0];
+        if (description == null) return EMPTY_STRING_ARRAY;
         List<String> descriptionList = new ArrayList<>();
         Collections.addAll(descriptionList, description.value());
         if (!description.generator().isEmpty() && classAccess != null) {
@@ -41,7 +43,7 @@ public class ConfigOption {
             String[] generatedDescription = (String[]) generator.invoke(null);
             if (generatedDescription != null) Collections.addAll(descriptionList, generatedDescription);
         }
-        return descriptionList.toArray(new String[0]);
+        return descriptionList.toArray(EMPTY_STRING_ARRAY);
     }
 
 
@@ -52,11 +54,14 @@ public class ConfigOption {
     private final Class<? extends ConfigTypeSerializer<?>> typeSerializer;
     private final boolean hidden;
     private final int order;
+    private final String cliName;
+    private final String[] cliAliases;
+    private final boolean cliIgnored;
     @Nullable
     private final MethodAccess validator;
     private final String[] dependencies;
 
-    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, final Map<String, MethodAccess> validatorMethods, @Nullable final ClassAccess classAccess) {
+    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, @Nullable CLI cli, final Map<String, MethodAccess> validatorMethods, @Nullable final ClassAccess classAccess) {
         this.fieldAccess = fieldAccess;
         this.name = option.value().isEmpty() ? fieldAccess.getName() : option.value();
         this.description = getDescription(this.name, description, classAccess);
@@ -64,6 +69,9 @@ public class ConfigOption {
         this.typeSerializer = typeSerializer == null ? null : unsafeCast(typeSerializer.value());
         this.hidden = hidden != null;
         this.order = order == null ? -1 : Math.max(0, order.value());
+        this.cliName = (cli == null || cli.name().isEmpty()) ? this.name : cli.name();
+        this.cliAliases = cli == null ? EMPTY_STRING_ARRAY : cli.aliases();
+        this.cliIgnored = cli != null && cli.ignore();
         this.validator = validatorMethods.remove(this.getName());
         this.dependencies = option.dependencies();
     }
