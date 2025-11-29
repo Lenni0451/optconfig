@@ -152,11 +152,9 @@ public class YamlUtils {
 
     public static void recurse(final Node node, final Consumer<Node> consumer) {
         consumer.accept(node);
-        if (node instanceof SequenceNode) {
-            SequenceNode sequenceNode = (SequenceNode) node;
+        if (node instanceof SequenceNode sequenceNode) {
             for (Node child : sequenceNode.getValue()) recurse(child, consumer);
-        } else if (node instanceof MappingNode) {
-            MappingNode mappingNode = (MappingNode) node;
+        } else if (node instanceof MappingNode mappingNode) {
             for (NodeTuple tuple : mappingNode.getValue()) {
                 recurse(tuple.getKeyNode(), consumer);
                 recurse(tuple.getValueNode(), consumer);
@@ -186,9 +184,7 @@ public class YamlUtils {
     }
 
     public static boolean copyValues(final Node from, final Node to) {
-        if (from instanceof MappingNode && to instanceof MappingNode) {
-            MappingNode fromMap = (MappingNode) from;
-            MappingNode toMap = (MappingNode) to;
+        if (from instanceof MappingNode fromMap && to instanceof MappingNode toMap) {
             for (NodeTuple fromTuple : fromMap.getValue()) {
                 NodeTuple toTuple = get(toMap, ((ScalarNode) fromTuple.getKeyNode()).getValue());
                 if (toTuple == null) {
@@ -207,10 +203,8 @@ public class YamlUtils {
                 }
             }
             return true;
-        } else if (from instanceof SequenceNode && to instanceof SequenceNode) {
+        } else if (from instanceof SequenceNode fromSeq && to instanceof SequenceNode toSeq) {
             //Go through all elements of the sequences and merge them
-            SequenceNode fromSeq = (SequenceNode) from;
-            SequenceNode toSeq = (SequenceNode) to;
             List<Node> newNodes = new ArrayList<>();
             FROM_LOOP:
             for (Node fromNode : fromSeq.getValue()) {
@@ -230,26 +224,20 @@ public class YamlUtils {
     }
 
     public static boolean equals(final Node node1, final Node node2) {
-        if (node1 instanceof MappingNode && node2 instanceof MappingNode) {
-            MappingNode map1 = (MappingNode) node1;
-            MappingNode map2 = (MappingNode) node2;
+        if (node1 instanceof MappingNode map1 && node2 instanceof MappingNode map2) {
             if (map1.getValue().size() != map2.getValue().size()) return false;
             for (NodeTuple tuple : map1.getValue()) {
                 NodeTuple otherTuple = get(map2, ((ScalarNode) tuple.getKeyNode()).getValue());
                 if (otherTuple == null || !equals(tuple.getValueNode(), otherTuple.getValueNode())) return false;
             }
             return true;
-        } else if (node1 instanceof SequenceNode && node2 instanceof SequenceNode) {
-            SequenceNode seq1 = (SequenceNode) node1;
-            SequenceNode seq2 = (SequenceNode) node2;
+        } else if (node1 instanceof SequenceNode seq1 && node2 instanceof SequenceNode seq2) {
             if (seq1.getValue().size() != seq2.getValue().size()) return false;
             for (int i = 0; i < seq1.getValue().size(); i++) {
                 if (!equals(seq1.getValue().get(i), seq2.getValue().get(i))) return false;
             }
             return true;
-        } else if (node1 instanceof ScalarNode && node2 instanceof ScalarNode) {
-            ScalarNode scalar1 = (ScalarNode) node1;
-            ScalarNode scalar2 = (ScalarNode) node2;
+        } else if (node1 instanceof ScalarNode scalar1 && node2 instanceof ScalarNode scalar2) {
             return Objects.equals(scalar1.getValue(), scalar2.getValue());
         }
         return false;
