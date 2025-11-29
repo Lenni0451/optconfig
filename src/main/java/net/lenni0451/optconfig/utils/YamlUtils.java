@@ -152,33 +152,39 @@ public class YamlUtils {
 
     public static void recurse(final Node node, final Consumer<Node> consumer) {
         consumer.accept(node);
-        if (node instanceof SequenceNode sequenceNode) {
-            for (Node child : sequenceNode.getValue()) recurse(child, consumer);
-        } else if (node instanceof MappingNode mappingNode) {
+        if (node instanceof MappingNode mappingNode) {
             for (NodeTuple tuple : mappingNode.getValue()) {
                 recurse(tuple.getKeyNode(), consumer);
                 recurse(tuple.getValueNode(), consumer);
             }
+        } else if (node instanceof SequenceNode sequenceNode) {
+            for (Node child : sequenceNode.getValue()) {
+                recurse(child, consumer);
+            }
         }
     }
 
-    public static void copyComments(final MappingNode from, final MappingNode to) {
+    public static void copyComments(final Node from, final Node to) {
         to.setBlockComments(from.getBlockComments());
         to.setEndComments(from.getEndComments());
         to.setInLineComments(from.getInLineComments());
-        for (NodeTuple tuple : to.getValue()) {
-            NodeTuple fromTuple = get(from, ((ScalarNode) tuple.getKeyNode()).getValue());
-            if (fromTuple == null) continue;
+        if (from instanceof MappingNode fromMap && to instanceof MappingNode toMap) {
+            for (NodeTuple toTuple : toMap.getValue()) {
+                NodeTuple fromTuple = get(fromMap, ((ScalarNode) toTuple.getKeyNode()).getValue());
+                if (fromTuple == null) continue;
 
-            tuple.getKeyNode().setBlockComments(fromTuple.getKeyNode().getBlockComments());
-            tuple.getKeyNode().setEndComments(fromTuple.getKeyNode().getEndComments());
-            tuple.getKeyNode().setInLineComments(fromTuple.getKeyNode().getInLineComments());
-            tuple.getValueNode().setBlockComments(fromTuple.getValueNode().getBlockComments());
-            tuple.getValueNode().setEndComments(fromTuple.getValueNode().getEndComments());
-            tuple.getValueNode().setInLineComments(fromTuple.getValueNode().getInLineComments());
-
-            if (tuple.getValueNode() instanceof MappingNode && fromTuple.getValueNode() instanceof MappingNode) {
-                copyComments((MappingNode) fromTuple.getValueNode(), (MappingNode) tuple.getValueNode());
+                copyComments(fromTuple.getKeyNode(), toTuple.getKeyNode());
+                copyComments(fromTuple.getValueNode(), toTuple.getValueNode());
+            }
+        } else if (from instanceof SequenceNode fromSeq && to instanceof SequenceNode toSeq) {
+            FROM_LOOP:
+            for (Node fromNode : fromSeq.getValue()) {
+                for (Node toNode : toSeq.getValue()) {
+                    if (equals(fromNode, toNode)) {
+                        copyComments(fromNode, toNode);
+                        continue FROM_LOOP;
+                    }
+                }
             }
         }
     }
@@ -210,6 +216,8 @@ public class YamlUtils {
             for (Node fromNode : fromSeq.getValue()) {
                 for (Node toNode : toSeq.getValue()) {
                     if (equals(fromNode, toNode)) {
+                        //The node exists in the target, keep the target node
+                        //This ensures that comments on the target node are preserved
                         newNodes.add(toNode);
                         continue FROM_LOOP;
                     }

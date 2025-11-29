@@ -51,9 +51,11 @@ public class MapConfigLoader {
     public void save(final Map<String, Object> config) throws IOException {
         MappingNode rootNode = (MappingNode) this.yaml.compose(new StringReader(this.configProvider.load()));
         MappingNode valuesNode = (MappingNode) this.yaml.represent(config);
-        YamlUtils.copyValues(valuesNode, rootNode);
+        //Only copy comments
+        //Using YmlUtils#copyValues results in the inability to remove subsections
+        YamlUtils.copyComments(rootNode, valuesNode);
         StringWriter writer = new StringWriter();
-        this.yaml.serialize(rootNode, writer);
+        this.yaml.serialize(valuesNode, writer);
         this.configProvider.save(writer.toString());
     }
 
