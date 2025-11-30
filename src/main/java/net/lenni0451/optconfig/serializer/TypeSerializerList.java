@@ -38,6 +38,19 @@ public class TypeSerializerList {
     }
 
     /**
+     * Add a new type serializer to the list without type safety.<br>
+     * <b>Use with caution!</b>
+     *
+     * @param type       The type to add the serializer for
+     * @param serializer The type serializer
+     * @return The type serializer list
+     */
+    public TypeSerializerList addUnchecked(final Class<?> type, final ConfigTypeSerializer<?> serializer) {
+        this.typeSerializers.put(type, serializer);
+        return this;
+    }
+
+    /**
      * Get a type serializer for the given type.
      * The serializer may also be for a superclass or interface of the given type.<br>
      * If no serializer is found, the generic type serializer is returned.
