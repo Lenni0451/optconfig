@@ -5,6 +5,7 @@ import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.cli.CLIHelpBuilder;
 import net.lenni0451.optconfig.cli.CLIOption;
 import net.lenni0451.optconfig.cli.CLIParser;
+import net.lenni0451.optconfig.cli.HelpOptions;
 import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
 import net.lenni0451.optconfig.exceptions.CLIParserException;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
@@ -94,12 +95,13 @@ public class ConfigContext<C> {
     /**
      * Print CLI help to the given Appendable (e.g. {@code System.out}).
      *
-     * @param out The Appendable to print the help to
+     * @param out     The Appendable to print the help to
+     * @param options Options for the help output
      * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
      */
-    public void printCLIHelp(final Appendable out) throws CLIIncompatibleOptionException {
+    public void printCLIHelp(final Appendable out, final HelpOptions options) throws CLIIncompatibleOptionException {
         HelpFormatter formatter = HelpFormatter.builder().columnCount(2).headers("Option", "Description").build();
-        this.buildCLIHelp(formatter);
+        this.buildCLIHelp(formatter, options);
         try {
             out.append(formatter.toString());
             out.append('\n');
@@ -112,16 +114,17 @@ public class ConfigContext<C> {
      * Build CLI help using the given formatter.
      *
      * @param formatter The help formatter
+     * @param options   Options for the help output
      * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
      */
-    public void buildCLIHelp(final HelpFormatter formatter) throws CLIIncompatibleOptionException {
+    public void buildCLIHelp(final HelpFormatter formatter, final HelpOptions options) throws CLIIncompatibleOptionException {
         if (formatter.getColumnCount() < 2) {
             throw new IllegalArgumentException("CLI help formatter must have at least 2 columns");
         }
         List<CLIOption> cliOptions = new ArrayList<>();
         //Populate CLI options
         ConfigSerializer.parseCLIOptions(this.configLoader, this.configInstance, this.configIndex, this.configInstance, new Stack<>(), cliOptions);
-        CLIHelpBuilder.build(formatter, cliOptions);
+        CLIHelpBuilder.build(formatter, cliOptions, options);
     }
 
     /**
