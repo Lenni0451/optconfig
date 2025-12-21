@@ -10,3 +10,6 @@ plugins {
 }
 
 rootProject.name = "optconfig"
+
+include(":core")
+//include(":cli")

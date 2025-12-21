@@ -13,6 +13,7 @@ import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,14 +55,12 @@ public class ConfigOption {
     private final Class<? extends ConfigTypeSerializer<?>> typeSerializer;
     private final boolean hidden;
     private final int order;
-    private final String cliName;
-    private final String[] cliAliases;
-    private final boolean cliIgnored;
+    private final Annotation[] extraAnnotations;
     @Nullable
     private final MethodAccess validator;
     private final String[] dependencies;
 
-    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, @Nullable CLI cli, final Map<String, MethodAccess> validatorMethods, @Nullable final ClassAccess classAccess) {
+    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, final Annotation[] extraAnnotations, final Map<String, MethodAccess> validatorMethods, @Nullable final ClassAccess classAccess) {
         this.fieldAccess = fieldAccess;
         this.name = option.value().isEmpty() ? fieldAccess.getName() : option.value();
         this.description = getDescription(this.name, description, classAccess);
@@ -69,9 +68,7 @@ public class ConfigOption {
         this.typeSerializer = typeSerializer == null ? null : unsafeCast(typeSerializer.value());
         this.hidden = hidden != null;
         this.order = order == null ? -1 : Math.max(0, order.value());
-        this.cliName = (cli == null || cli.name().isEmpty()) ? this.name : cli.name();
-        this.cliAliases = cli == null ? EMPTY_STRING_ARRAY : cli.aliases();
-        this.cliIgnored = cli != null && cli.ignore();
+        this.extraAnnotations = extraAnnotations;
         this.validator = validatorMethods.remove(this.getName());
         this.dependencies = option.dependencies();
     }

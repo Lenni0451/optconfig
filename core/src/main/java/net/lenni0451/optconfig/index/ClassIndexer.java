@@ -8,12 +8,16 @@ import net.lenni0451.optconfig.annotations.*;
 import net.lenni0451.optconfig.annotations.internal.Migrators;
 import net.lenni0451.optconfig.exceptions.InvalidValidatorException;
 import net.lenni0451.optconfig.exceptions.UnknownDependencyException;
-import net.lenni0451.optconfig.index.dummy.*;
+import net.lenni0451.optconfig.index.dummy.DummyDescription;
+import net.lenni0451.optconfig.index.dummy.DummyFieldAccess;
+import net.lenni0451.optconfig.index.dummy.DummyNotReloadable;
+import net.lenni0451.optconfig.index.dummy.DummyOption;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,12 +25,15 @@ import java.util.Map;
 @ApiStatus.Internal
 public class ClassIndexer {
 
-    public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccessFactory classAccessFactory) {
+    private static final Annotation[] NO_EXTRA_ANNOTATIONS = new Annotation[0];
+
+    @SafeVarargs
+    public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccessFactory classAccessFactory, final Class<? extends Annotation>... extraAnnotations) {
         ClassAccess classAccess = classAccessFactory.create(clazz);
-        return indexClass(configType, clazz, classAccess, classAccessFactory, false);
+        return indexClass(configType, clazz, classAccess, classAccessFactory, extraAnnotations, false);
     }
 
-    public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory, final boolean loadOnly) {
+    private static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory, final Class<? extends Annotation>[] extraAnnotations, final boolean loadOnly) {
         SectionIndex sectionIndex;
         if (classAccess.getAnnotation(OptConfig.class) != null) {
             OptConfig optConfig = classAccess.getAnnotation(OptConfig.class);
@@ -38,8 +45,8 @@ public class ClassIndexer {
         } else {
             throw new IllegalArgumentException("The class " + clazz.getName() + " is not annotated with @OptConfig or @Section");
         }
-        indexFields(sectionIndex, classAccess, classAccessFactory);
-        loadSuperClasses(configType, clazz, classAccess, sectionIndex, classAccessFactory);
+        indexFields(sectionIndex, classAccess, classAccessFactory, extraAnnotations);
+        loadSuperClasses(configType, clazz, classAccess, sectionIndex, classAccessFactory, extraAnnotations);
         if (!loadOnly) {
             sectionIndex.sortOptions();
             addInMemoryFields(sectionIndex);
@@ -61,7 +68,7 @@ public class ClassIndexer {
         }
     }
 
-    private static void indexFields(final SectionIndex sectionIndex, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory) {
+    private static void indexFields(final SectionIndex sectionIndex, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory, final Class<? extends Annotation>[] extraAnnotations) {
         Class<?> clazz = sectionIndex.getClazz();
         Map<String, MethodAccess> validatorMethods = new HashMap<>();
         for (MethodAccess method : classAccess.getMethods()) { //Index all validator method
@@ -81,8 +88,11 @@ public class ClassIndexer {
             TypeSerializer typeSerializer = field.getAnnotation(TypeSerializer.class);
             Hidden hidden = field.getAnnotation(Hidden.class);
             Order order = field.getAnnotation(Order.class);
-            CLI cli = field.getAnnotation(CLI.class);
-            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, cli, validatorMethods, classAccess);
+            Annotation[] extra = new Annotation[extraAnnotations.length];
+            for (int i = 0; i < extraAnnotations.length; i++) {
+                extra[i] = field.getAnnotation(extraAnnotations[i]);
+            }
+            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, extra, validatorMethods, classAccess);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }
@@ -110,7 +120,7 @@ public class ClassIndexer {
                         null,
                         null,
                         null,
-                        null,
+                        NO_EXTRA_ANNOTATIONS,
                         Collections.emptyMap(),
                         null
                 );
@@ -127,6 +137,23 @@ public class ClassIndexer {
         }
     }
 
+    private static void loadSuperClasses(final ConfigType configType, final Class<?> clazz, final ClassAccess classAccess, final SectionIndex sectionIndex, final ClassAccessFactory classAccessFactory, final Class<? extends Annotation>[] extraAnnotations) {
+        if (clazz.getDeclaredAnnotation(CheckSuperclasses.class) == null) return;
+        Class<?> superClass = clazz.getSuperclass();
+        while (superClass != null) {
+            ClassAccess superClassAccess = classAccessFactory.create(superClass);
+            if (classAccess.getAnnotation(OptConfig.class) != null && superClassAccess.getAnnotation(OptConfig.class) != null
+                    || classAccess.getAnnotation(Section.class) != null && superClassAccess.getAnnotation(Section.class) != null) {
+                //Load the section index of the super class but without any in memory fields (config version)
+                SectionIndex superClassIndex = indexClass(configType, superClass, superClassAccess, classAccessFactory, extraAnnotations, true);
+                sectionIndex.merge(superClassIndex);
+                break;
+            } else {
+                superClass = superClass.getSuperclass();
+            }
+        }
+    }
+
     private static void addInMemoryFields(final SectionIndex sectionIndex) {
         if (sectionIndex instanceof ConfigIndex configIndex) {
             if (configIndex.getVersion() != OptConfig.DEFAULT_VERSION) {
@@ -138,27 +165,10 @@ public class ClassIndexer {
                         null,
                         null,
                         null,
-                        new DummyCLI(),
+                        NO_EXTRA_ANNOTATIONS,
                         Collections.emptyMap(),
                         null
                 ));
-            }
-        }
-    }
-
-    private static void loadSuperClasses(final ConfigType configType, final Class<?> clazz, final ClassAccess classAccess, final SectionIndex sectionIndex, final ClassAccessFactory classAccessFactory) {
-        if (clazz.getDeclaredAnnotation(CheckSuperclasses.class) == null) return;
-        Class<?> superClass = clazz.getSuperclass();
-        while (superClass != null) {
-            ClassAccess superClassAccess = classAccessFactory.create(superClass);
-            if (classAccess.getAnnotation(OptConfig.class) != null && superClassAccess.getAnnotation(OptConfig.class) != null
-                    || classAccess.getAnnotation(Section.class) != null && superClassAccess.getAnnotation(Section.class) != null) {
-                //Load the section index of the super class but without any in memory fields (config version)
-                SectionIndex superClassIndex = indexClass(configType, superClass, superClassAccess, classAccessFactory, true);
-                sectionIndex.merge(superClassIndex);
-                break;
-            } else {
-                superClass = superClass.getSuperclass();
             }
         }
     }
