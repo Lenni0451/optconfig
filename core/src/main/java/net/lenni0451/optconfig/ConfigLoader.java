@@ -22,6 +22,7 @@ import org.yaml.snakeyaml.nodes.MappingNode;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -122,8 +123,8 @@ public class ConfigLoader<C> {
         if (configProvider.exists()) {
             //If the file exists, load the content and deserialize it to a map
             //If differences are found, load the config again as Nodes and apply the differences, then save the config again
-            String content = configProvider.load();
-            Map<String, Object> values = this.yaml.load(content);
+            byte[] content = configProvider.load();
+            Map<String, Object> values = this.yaml.load(new String(content, StandardCharsets.UTF_8));
             ConfigDiff configDiff = ConfigSerializer.deserializeSection(this, instance, sectionIndex, instance, values, reload, null);
             if (!this.configOptions.isRewriteConfig() || reload) {
                 //If the config should be rewritten anyway, this step is not necessary
@@ -144,7 +145,7 @@ public class ConfigLoader<C> {
     void save(final MappingNode node, final ConfigProvider configProvider) throws IOException {
         StringWriter writer = new StringWriter();
         this.yaml.serialize(node, writer);
-        configProvider.save(writer.toString());
+        configProvider.save(writer.toString().getBytes(StandardCharsets.UTF_8));
     }
 
 }

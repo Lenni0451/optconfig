@@ -7,27 +7,27 @@ import java.util.function.Supplier;
 
 public class MemoryConfigProvider implements ConfigProvider {
 
-    private final Supplier<String> contentSupplier;
-    private final Consumer<String> contentConsumer;
+    private final Supplier<byte[]> contentSupplier;
+    private final Consumer<byte[]> contentConsumer;
 
-    public MemoryConfigProvider(final Supplier<String> contentSupplier, final Consumer<String> contentConsumer) {
+    public MemoryConfigProvider(final Supplier<byte[]> contentSupplier, final Consumer<byte[]> contentConsumer) {
         this.contentSupplier = contentSupplier;
         this.contentConsumer = contentConsumer;
     }
 
     @Override
-    public String load() {
+    public byte[] load() {
         return this.contentSupplier.get();
     }
 
     @Override
-    public void save(String content) {
+    public void save(byte[] content) {
         this.contentConsumer.accept(content);
     }
 
     @Override
     public boolean exists() {
-        return !this.load().isEmpty();
+        return this.load().length > 0;
     }
 
 }

@@ -11,17 +11,18 @@ import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 
 import javax.annotation.Nullable;
-import java.io.StringReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 @ApiStatus.Internal
 public class DiffMerger {
 
-    public static <C> MappingNode merge(final ConfigLoader<C> configLoader, final Map<ConfigOption, Object> defaultValues, final String fileContent, final SectionIndex sectionIndex, final ConfigDiff configDiff, @Nullable final C instance) {
+    public static <C> MappingNode merge(final ConfigLoader<C> configLoader, final Map<ConfigOption, Object> defaultValues, final byte[] fileContent, final SectionIndex sectionIndex, final ConfigDiff configDiff, @Nullable final C instance) {
         //Some values in the config have changed
         //Load the config as Nodes and apply the differences to keep comments and formatting
         MappingNode serializedNode = ConfigSerializer.serializeSection(configLoader, defaultValues, instance, sectionIndex, instance); //Used for copying over nodes
-        MappingNode readNode = (MappingNode) configLoader.getYaml().compose(new StringReader(fileContent));
+        MappingNode readNode = (MappingNode) configLoader.getYaml().compose(new InputStreamReader(new ByteArrayInputStream(fileContent)));
         doMerge(configLoader.getConfigOptions(), configDiff, readNode, serializedNode);
         return readNode;
     }

@@ -9,8 +9,9 @@ import net.lenni0451.optconfig.serializer.ConfigSerializer;
 import net.lenni0451.optconfig.utils.YamlUtils;
 import org.yaml.snakeyaml.nodes.MappingNode;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 /**
@@ -78,7 +79,7 @@ public class ConfigContext<C> {
             this.configLoader.save(serializedSection, this.configProvider);
         } else {
             //If the config should not be rewritten, copy over comments and formatting
-            MappingNode readNode = (MappingNode) this.configLoader.getYaml().compose(new StringReader(this.configProvider.load()));
+            MappingNode readNode = (MappingNode) this.configLoader.getYaml().compose(new InputStreamReader(new ByteArrayInputStream(this.configProvider.load())));
             YamlUtils.copyValues(serializedSection, readNode);
             this.configLoader.save(readNode, this.configProvider);
         }

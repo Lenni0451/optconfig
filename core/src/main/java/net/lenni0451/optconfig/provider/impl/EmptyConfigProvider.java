@@ -11,12 +11,12 @@ import java.io.IOException;
 public class EmptyConfigProvider implements ConfigProvider {
 
     @Override
-    public String load() throws IOException {
-        return "";
+    public byte[] load() throws IOException {
+        return new byte[0];
     }
 
     @Override
-    public void save(String content) {
+    public void save(byte[] content) {
     }
 
     @Override

@@ -42,7 +42,7 @@ public interface ConfigProvider {
      * @param contentConsumer The consumer to set the content
      * @return The created {@link MemoryConfigProvider}
      */
-    static MemoryConfigProvider memory(final String content, final Consumer<String> contentConsumer) {
+    static MemoryConfigProvider memory(final byte[] content, final Consumer<byte[]> contentConsumer) {
         return memory(() -> content, contentConsumer);
     }
 
@@ -53,7 +53,7 @@ public interface ConfigProvider {
      * @param contentConsumer The consumer to set the content
      * @return The created {@link MemoryConfigProvider}
      */
-    static MemoryConfigProvider memory(final Supplier<String> contentSupplier, final Consumer<String> contentConsumer) {
+    static MemoryConfigProvider memory(final Supplier<byte[]> contentSupplier, final Consumer<byte[]> contentConsumer) {
         return new MemoryConfigProvider(contentSupplier, contentConsumer);
     }
 
@@ -76,7 +76,7 @@ public interface ConfigProvider {
      * @return The content of the config file
      * @throws IOException If an I/O error occurs
      */
-    String load() throws IOException;
+    byte[] load() throws IOException;
 
     /**
      * Save the content to the config file.
@@ -84,7 +84,7 @@ public interface ConfigProvider {
      * @param content The content to save
      * @throws IOException If an I/O error occurs
      */
-    void save(final String content) throws IOException;
+    void save(final byte[] content) throws IOException;
 
     /**
      * @return If a config already exists
