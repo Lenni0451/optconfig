@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -39,8 +40,14 @@ public class MapConfigLoader {
      * @throws IOException If an I/O error occurs
      */
     public Map<String, Object> load() throws IOException {
-        byte[] content = this.configProvider.load();
-        return this.yaml.load(new String(content, StandardCharsets.UTF_8));
+        if (this.configProvider.exists()) {
+            byte[] content = this.configProvider.load();
+            Map<String, Object> config = this.yaml.load(new String(content, StandardCharsets.UTF_8));
+            if (config == null) return new LinkedHashMap<>();
+            return config;
+        } else {
+            return new LinkedHashMap<>();
+        }
     }
 
     /**
@@ -51,11 +58,15 @@ public class MapConfigLoader {
      * @throws IOException If an I/O error occurs
      */
     public void save(final Map<String, Object> config) throws IOException {
-        MappingNode rootNode = (MappingNode) this.yaml.compose(new InputStreamReader(new ByteArrayInputStream(this.configProvider.load())));
         MappingNode valuesNode = (MappingNode) this.yaml.represent(config);
-        //Only copy comments
-        //Using YmlUtils#copyValues results in the inability to remove subsections
-        YamlUtils.copyComments(rootNode, valuesNode);
+        if (this.configProvider.exists()) {
+            MappingNode rootNode = (MappingNode) this.yaml.compose(new InputStreamReader(new ByteArrayInputStream(this.configProvider.load())));
+            if (rootNode != null) {
+                //Only copy comments
+                //Using YamlUtils#copyValues results in the inability to remove subsections
+                YamlUtils.copyComments(rootNode, valuesNode);
+            }
+        }
         StringWriter writer = new StringWriter();
         this.yaml.serialize(valuesNode, writer);
         this.configProvider.save(writer.toString().getBytes(StandardCharsets.UTF_8));
