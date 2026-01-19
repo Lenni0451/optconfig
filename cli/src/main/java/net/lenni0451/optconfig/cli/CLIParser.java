@@ -13,7 +13,7 @@ import java.util.Map;
 @ApiStatus.Internal
 public class CLIParser {
 
-    public static void parse(final Yaml yaml, final List<CLIOption> cliOptions, final String[] args, final Map<String, Object> values) throws CLIParserException {
+    public static List<UnknownOption> parse(final Yaml yaml, final List<CLIOption> cliOptions, final String[] args, final Map<String, Object> values) throws CLIParserException {
         Map<String, List<String>> passedValues = new HashMap<>();
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
@@ -26,12 +26,13 @@ public class CLIParser {
                 } else if (i < args.length - 1 && !args[i + 1].startsWith("-")) {
                     passedValues.computeIfAbsent(arg, k -> new ArrayList<>()).add(args[++i]);
                 } else {
-                    passedValues.computeIfAbsent(arg, k -> new ArrayList<>()).add("true");
+                    passedValues.computeIfAbsent(arg, k -> new ArrayList<>());
                 }
             }
         }
 
         Map<CLIOption, List<String>> parsedOptions = new HashMap<>();
+        Map<String, List<String>> unknownOptions = new HashMap<>();
         PARSE_LOOP:
         for (Map.Entry<String, List<String>> entry : passedValues.entrySet()) {
             for (CLIOption cliOption : cliOptions) {
@@ -40,7 +41,7 @@ public class CLIParser {
                     continue PARSE_LOOP;
                 }
             }
-            throw CLIParserException.unknownOption(entry.getKey());
+            unknownOptions.put(entry.getKey(), entry.getValue());
         }
 
         for (Map.Entry<CLIOption, List<String>> entry : parsedOptions.entrySet()) {
@@ -57,19 +58,26 @@ public class CLIParser {
             }
 
             Object value;
-            if (entry.getKey().node() instanceof SequenceNode) {
+            if (entry.getKey().node() instanceof SequenceNode) { //List option
                 List<Object> list = new ArrayList<>();
                 for (String e : entry.getValue()) {
                     list.add(yaml.load(e));
                 }
                 value = list;
-            } else if (entry.getValue().size() == 1) {
-                value = yaml.load(entry.getValue().get(0));
-            } else {
-                throw CLIParserException.multipleValuesForSingleValueOption(entry.getKey(), entry.getValue());
+            } else { //Single value option
+                if (entry.getValue().isEmpty()) {
+                    value = true;
+                } else if (entry.getValue().size() == 1) {
+                    value = yaml.load(entry.getValue().get(0));
+                } else {
+                    throw CLIParserException.multipleValuesForSingleValueOption(entry.getKey(), entry.getValue());
+                }
             }
             targetMap.put(entry.getKey().configOption().getName(), value);
         }
+        return unknownOptions.entrySet().stream()
+                .map(e -> new UnknownOption(e.getKey(), e.getValue().toArray(new String[0])))
+                .toList();
     }
 
 }

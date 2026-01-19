@@ -3,10 +3,7 @@ package net.lenni0451.optconfig;
 import net.lenni0451.optconfig.annotations.cli.CLIAliases;
 import net.lenni0451.optconfig.annotations.cli.CLIIgnore;
 import net.lenni0451.optconfig.annotations.cli.CLIName;
-import net.lenni0451.optconfig.cli.CLIHelpBuilder;
-import net.lenni0451.optconfig.cli.CLIOption;
-import net.lenni0451.optconfig.cli.CLIParser;
-import net.lenni0451.optconfig.cli.HelpOptions;
+import net.lenni0451.optconfig.cli.*;
 import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
 import net.lenni0451.optconfig.exceptions.CLIParserException;
 import net.lenni0451.optconfig.index.ClassIndexer;
@@ -77,16 +74,18 @@ public class CLIConfigLoader<C> {
      *
      * @param args                    The CLI arguments
      * @param setNotReloadableOptions If true, not reloadable options will also be set from the CLI arguments
+     * @return A list of unknown options and their values
      * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
      * @throws CLIParserException             If the user provided invalid CLI arguments
      */
-    public void loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException {
+    public List<UnknownOption> loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException {
         List<CLIOption> cliOptions = new ArrayList<>();
         //Populate CLI options
         CLIConfigSerializer.parseCLIOptions(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), new Stack<>(), cliOptions);
         Map<String, Object> values = new HashMap<>();
-        CLIParser.parse(this.context.getConfigLoader().getYaml(), cliOptions, args, values);
+        List<UnknownOption> unknownOptions = CLIParser.parse(this.context.getConfigLoader().getYaml(), cliOptions, args, values);
         ConfigSerializer.deserializeSection(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), values, !setNotReloadableOptions, null);
+        return unknownOptions;
     }
 
 }

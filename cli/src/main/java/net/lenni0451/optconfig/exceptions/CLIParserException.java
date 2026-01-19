@@ -13,10 +13,6 @@ public class CLIParserException extends Exception {
         return new CLIParserException("Value '" + value + "' provided without an option");
     }
 
-    public static CLIParserException unknownOption(final String option) {
-        return new CLIParserException("Unknown option: '" + option + "'");
-    }
-
     public static CLIParserException multipleValuesForSingleValueOption(final CLIOption option, final List<String> values) {
         return new CLIParserException("Multiple values '" + String.join(", ", values) + "' provided for single-value option: '" + option.formatNameAndAliases() + "'");
     }
