@@ -1,11 +1,14 @@
 package net.lenni0451.optconfig.index;
 
+import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.access.ClassAccessFactory;
 import net.lenni0451.optconfig.access.types.ClassAccess;
 import net.lenni0451.optconfig.access.types.FieldAccess;
 import net.lenni0451.optconfig.access.types.MethodAccess;
 import net.lenni0451.optconfig.annotations.*;
 import net.lenni0451.optconfig.annotations.internal.Migrators;
+import net.lenni0451.optconfig.exceptions.ConfigNotAnnotatedException;
+import net.lenni0451.optconfig.exceptions.EmptyConfigException;
 import net.lenni0451.optconfig.exceptions.InvalidValidatorException;
 import net.lenni0451.optconfig.exceptions.UnknownDependencyException;
 import net.lenni0451.optconfig.index.dummy.DummyDescription;
@@ -17,6 +20,7 @@ import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import org.jetbrains.annotations.ApiStatus;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +30,28 @@ import java.util.Map;
 public class ClassIndexer {
 
     private static final Annotation[] NO_EXTRA_ANNOTATIONS = new Annotation[0];
+
+    @SafeVarargs
+    public static <C> ConfigIndex indexClassAndInit(final ConfigType configType, final ConfigLoader<C> configLoader, @Nullable final C config, final Class<? extends Annotation>... extraAnnotations) {
+        SectionIndex index = ClassIndexer.indexClass(configType, configLoader.getConfigClass(), configLoader.getConfigOptions().getClassAccessFactory(), extraAnnotations);
+        if (!(index instanceof ConfigIndex configIndex)) throw new ConfigNotAnnotatedException(configLoader.getConfigClass());
+        if (index.isEmpty()) throw new EmptyConfigException(configLoader.getConfigClass());
+        switch (configType) {
+            case STATIC -> {
+                if (config != null) {
+                    throw new IllegalArgumentException("Config instance must be null for STATIC config type");
+                }
+            }
+            case INSTANCED -> {
+                if (config == null) {
+                    throw new NullPointerException("Config instance cannot be null for INSTANCED config type");
+                } else {
+                    index.initSubSections(configLoader, config);
+                }
+            }
+        }
+        return configIndex;
+    }
 
     @SafeVarargs
     public static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final ClassAccessFactory classAccessFactory, final Class<? extends Annotation>... extraAnnotations) {
