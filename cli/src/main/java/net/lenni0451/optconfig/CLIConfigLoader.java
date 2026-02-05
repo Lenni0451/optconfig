@@ -11,7 +11,6 @@ import net.lenni0451.optconfig.index.ConfigType;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
 import net.lenni0451.optconfig.serializer.CLIConfigSerializer;
 import net.lenni0451.optconfig.serializer.ConfigSerializer;
-import net.lenni0451.optconfig.utils.HelpFormatter;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -42,10 +41,8 @@ public class CLIConfigLoader<C> {
      * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
      */
     public void printCLIHelp(final Appendable out, final HelpOptions options) throws CLIIncompatibleOptionException {
-        HelpFormatter formatter = HelpFormatter.builder().columnCount(2).headers("Option", "Description").build();
-        this.buildCLIHelp(formatter, options);
         try {
-            out.append(formatter.toString());
+            out.append(this.buildCLIHelp(options));
             out.append('\n');
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -55,18 +52,15 @@ public class CLIConfigLoader<C> {
     /**
      * Build CLI help using the given formatter.
      *
-     * @param formatter The help formatter
-     * @param options   Options for the help output
+     * @param options Options for the help output
+     * @return The built help string
      * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
      */
-    public void buildCLIHelp(final HelpFormatter formatter, final HelpOptions options) throws CLIIncompatibleOptionException {
-        if (formatter.getColumnCount() < 2) {
-            throw new IllegalArgumentException("CLI help formatter must have at least 2 columns");
-        }
+    public String buildCLIHelp(final HelpOptions options) throws CLIIncompatibleOptionException {
         List<CLIOption> cliOptions = new ArrayList<>();
         //Populate CLI options
         CLIConfigSerializer.parseCLIOptions(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), new Stack<>(), cliOptions);
-        CLIHelpBuilder.build(formatter, cliOptions, options);
+        return CLIHelpBuilder.build(cliOptions, options);
     }
 
     /**
