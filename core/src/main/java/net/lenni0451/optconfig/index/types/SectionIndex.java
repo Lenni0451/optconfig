@@ -1,11 +1,9 @@
 package net.lenni0451.optconfig.index.types;
 
 import lombok.ToString;
-import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.exceptions.DuplicateOptionException;
 import net.lenni0451.optconfig.index.ConfigType;
 import net.lenni0451.optconfig.index.DependencySorter;
-import net.lenni0451.optconfig.utils.ReflectionUtils;
 import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
@@ -81,16 +79,6 @@ public class SectionIndex {
         return this.options.isEmpty() && this.subSections.values().stream().allMatch(SectionIndex::isEmpty);
     }
 
-    public void initSubSections(final ConfigLoader<?> configLoader, final Object parentInstance) {
-        for (ConfigOption subSection : this.subSections.keySet()) {
-            Object sectionInstance = subSection.getFieldAccess().getValue(parentInstance);
-            if (sectionInstance == null) {
-                sectionInstance = ReflectionUtils.instantiate(configLoader, subSection.getFieldAccess().getType());
-                subSection.getFieldAccess().setValue(parentInstance, sectionInstance);
-            }
-        }
-    }
-
     /**
      * Get the current values of all config option.<br>
      * The values are flattened into a map without any section information.<br>
@@ -103,8 +91,7 @@ public class SectionIndex {
         Map<ConfigOption, Object> values = new HashMap<>();
         for (ConfigOption option : this.options) {
             if (this.subSections.containsKey(option)) {
-                Object subSectionInstance = null;
-                if (sectionInstance != null) subSectionInstance = option.getFieldAccess().getValue(sectionInstance);
+                Object subSectionInstance = option.getFieldAccess().getValue(sectionInstance);
                 values.putAll(this.subSections.get(option).getCurrentValues(subSectionInstance));
             } else {
                 values.put(option, option.getFieldAccess().getValue(sectionInstance));

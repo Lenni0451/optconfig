@@ -44,4 +44,29 @@ public @interface Section {
      */
     boolean reloadable() default true;
 
+    /**
+     * Get the type of the section.<br>
+     * You can use this to mix different section types in one config class.<br>
+     * For example, you can have a static config class with multiple instanced sections (they can even all have the same type).
+     *
+     * @return The type of the section
+     */
+    Type type() default Type.PARENT;
+
+
+    enum Type {
+        /**
+         * The section is loaded with the same type as the parent config class.
+         */
+        PARENT,
+        /**
+         * The section is always loaded as a static section.
+         */
+        STATIC,
+        /**
+         * The section is always loaded as an instanced section.
+         */
+        INSTANCED
+    }
+
 }
