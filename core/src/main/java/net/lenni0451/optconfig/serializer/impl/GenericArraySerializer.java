@@ -20,25 +20,25 @@ public class GenericArraySerializer implements ConfigTypeSerializer<Object> {
     public Object deserialize(DeserializerInfo<Object> info) {
         if (!info.type().isArray()) throw new InvalidSerializedObjectException(Array.class, info.type());
 
-        if (info.serializedValue().getClass().isArray()) {
-            int arrayLength = Array.getLength(info.serializedValue());
+        if (info.value().getClass().isArray()) {
+            int arrayLength = Array.getLength(info.value());
             Object newArray = Array.newInstance(info.type().getComponentType(), arrayLength);
             Type componentGenericType = Generics.getArrayComponentGenericType(info.genericType());
             for (int i = 0; i < arrayLength; i++) {
-                Object defaultValue = (info.currentValue() == null || Array.getLength(info.currentValue()) <= i) ? null : Array.get(info.currentValue(), i);
+                Object defaultValue = (info.configValue() == null || Array.getLength(info.configValue()) <= i) ? null : Array.get(info.configValue(), i);
                 Class<?> componentType = defaultValue == null ? info.type().getComponentType() : defaultValue.getClass();
-                Object value = Array.get(info.serializedValue(), i);
+                Object value = Array.get(info.value(), i);
 
                 ConfigTypeSerializer<?> typeSerializer = info.typeSerializers().get(componentType);
                 Object deserializedValue = typeSerializer.deserialize(info.uncheckedDerive(componentType, componentGenericType, defaultValue, value));
                 Array.set(newArray, i, deserializedValue);
             }
             return newArray;
-        } else if (info.serializedValue() instanceof List<?> serializedList) { //YAML usually returns a list for arrays
+        } else if (info.value() instanceof List<?> serializedList) { //YAML usually returns a list for arrays
             Object newArray = Array.newInstance(info.type().getComponentType(), serializedList.size());
             Type componentGenericType = Generics.getArrayComponentGenericType(info.genericType());
             for (int i = 0; i < serializedList.size(); i++) {
-                Object defaultValue = (info.currentValue() == null || Array.getLength(info.currentValue()) <= i) ? null : Array.get(info.currentValue(), i);
+                Object defaultValue = (info.configValue() == null || Array.getLength(info.configValue()) <= i) ? null : Array.get(info.configValue(), i);
                 Class<?> componentType = defaultValue == null ? info.type().getComponentType() : defaultValue.getClass();
                 Object value = serializedList.get(i);
 
@@ -48,7 +48,7 @@ public class GenericArraySerializer implements ConfigTypeSerializer<Object> {
             }
             return newArray;
         } else {
-            throw new InvalidSerializedObjectException(List.class, info.serializedValue().getClass());
+            throw new InvalidSerializedObjectException(List.class, info.value().getClass());
         }
     }
 

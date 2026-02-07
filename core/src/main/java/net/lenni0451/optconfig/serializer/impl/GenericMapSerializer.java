@@ -18,21 +18,21 @@ public class GenericMapSerializer implements ConfigTypeSerializer<Map> {
 
     @Override
     public Map deserialize(DeserializerInfo<Map> info) {
-        if (info.serializedValue() == null) return null;
-        if (!(info.serializedValue() instanceof Map map)) throw new IllegalArgumentException("Serialized object is not a map");
+        if (info.value() == null) return null;
+        if (!(info.value() instanceof Map map)) throw new IllegalArgumentException("Serialized object is not a map");
 
         Type keyGenericType = Generics.getMapKeyGenericType(info.genericType());
         Type valueGenericType = Generics.getMapValueGenericType(info.genericType());
         Class<?> keyType = Generics.resolveTypeToClass(keyGenericType);
         Class<?> valueType = Generics.resolveTypeToClass(valueGenericType);
-        if (keyType == null) keyType = info.currentValue() == null ? Object.class : ClassUtils.getCollectionType(info.currentValue().keySet());
-        if (valueType == null) valueType = info.currentValue() == null ? Object.class : ClassUtils.getCollectionType(info.currentValue().values());
+        if (keyType == null) keyType = info.configValue() == null ? Object.class : ClassUtils.getCollectionType(info.configValue().keySet());
+        if (valueType == null) valueType = info.configValue() == null ? Object.class : ClassUtils.getCollectionType(info.configValue().values());
         Map newMap = new LinkedHashMap(map.size());
         for (Object rawEntry : map.entrySet()) {
             Map.Entry entry = (Map.Entry) rawEntry;
             Object key = entry.getKey();
             Object value = entry.getValue();
-            Object defaultValue = info.currentValue() == null ? null : info.currentValue().get(key);
+            Object defaultValue = info.configValue() == null ? null : info.configValue().get(key);
             Class<?> valueClass = defaultValue == null ? valueType : defaultValue.getClass();
 
             ConfigTypeSerializer<?> keySerializer = info.typeSerializers().get(keyType);

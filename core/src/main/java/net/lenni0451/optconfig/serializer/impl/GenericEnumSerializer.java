@@ -16,12 +16,12 @@ public class GenericEnumSerializer implements ConfigTypeSerializer<Enum> {
 
     @Override
     public Enum deserialize(DeserializerInfo<Enum> info) {
-        if (info.serializedValue() instanceof Integer i) {
+        if (info.value() instanceof Integer i) {
             return info.type().getEnumConstants()[i];
-        } else if (info.serializedValue() instanceof String s) {
+        } else if (info.value() instanceof String s) {
             return Enum.valueOf(info.type(), s.toUpperCase(Locale.ROOT));
         }
-        throw new InvalidSerializedObjectException(String.class, info.serializedValue().getClass());
+        throw new InvalidSerializedObjectException(String.class, info.value().getClass());
     }
 
     @Override

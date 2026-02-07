@@ -31,15 +31,15 @@ public class StringTypeSerializer implements ConfigTypeSerializer<String> {
 
     @Override
     public String deserialize(DeserializerInfo<String> info) {
-        if (info.serializedValue() == null) {
+        if (info.value() == null) {
             return null;
-        } else if (info.serializedValue() instanceof String s) {
+        } else if (info.value() instanceof String s) {
             if (this.emptyIsNull && s.isEmpty()) return null;
             else return s;
-        } else if (info.serializedValue() instanceof Number || info.serializedValue() instanceof Boolean) {
-            return info.serializedValue().toString();
+        } else if (info.value() instanceof Number || info.value() instanceof Boolean) {
+            return info.value().toString();
         } else {
-            throw new InvalidSerializedObjectException(String.class, info.serializedValue().getClass());
+            throw new InvalidSerializedObjectException(String.class, info.value().getClass());
         }
     }
 

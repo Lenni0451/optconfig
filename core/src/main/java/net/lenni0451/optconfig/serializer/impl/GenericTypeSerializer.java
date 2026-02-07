@@ -13,7 +13,7 @@ public class GenericTypeSerializer implements ConfigTypeSerializer<Object> {
 
     @Override
     public Object deserialize(DeserializerInfo<Object> info) {
-        return info.serializedValue();
+        return info.value();
     }
 
     @Override

@@ -19,15 +19,15 @@ public class GenericListSerializer implements ConfigTypeSerializer<List> {
 
     @Override
     public List deserialize(DeserializerInfo<List> info) {
-        if (info.serializedValue() == null) return null;
-        if (!(info.serializedValue() instanceof List list)) throw new InvalidSerializedObjectException(List.class, info.serializedValue().getClass());
+        if (info.value() == null) return null;
+        if (!(info.value() instanceof List list)) throw new InvalidSerializedObjectException(List.class, info.value().getClass());
 
         Type entryGenericType = Generics.getListEntryGenericType(info.genericType());
         Class<?> entryType = Generics.resolveTypeToClass(entryGenericType);
-        if (entryType == null) entryType = ClassUtils.getCollectionType(info.currentValue());
+        if (entryType == null) entryType = ClassUtils.getCollectionType(info.configValue());
         List newList = new ArrayList(list.size());
         for (int i = 0; i < list.size(); i++) {
-            Object defaultValue = (info.currentValue() == null || info.currentValue().size() <= i) ? null : info.currentValue().get(i);
+            Object defaultValue = (info.configValue() == null || info.configValue().size() <= i) ? null : info.configValue().get(i);
             Class<?> componentType = defaultValue == null ? entryType : defaultValue.getClass();
             Object value = list.get(i);
 
