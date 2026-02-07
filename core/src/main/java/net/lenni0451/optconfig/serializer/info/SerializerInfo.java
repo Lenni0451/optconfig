@@ -7,8 +7,20 @@ import org.jetbrains.annotations.ApiStatus;
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
+/**
+ * Information about a serialization process.
+ *
+ * @param configInstance  The config instance or null for static serialization
+ * @param sectionInstance The instance of the section containing the config option or null for static serialization
+ * @param typeSerializers The list of type serializers
+ * @param type            The type of the config option
+ * @param genericType     The generic type of the config option
+ * @param value           The value of the config option
+ * @param <T>             The type of the config option
+ */
 @With
-public record SerializerInfo<T>(@Nullable Object configInstance, TypeSerializerList typeSerializers, Class<T> type, @Nullable Type genericType, T value) {
+public record SerializerInfo<T>(@Nullable Object configInstance, @Nullable Object sectionInstance, TypeSerializerList typeSerializers, Class<T> type, @Nullable Type genericType,
+        T value) {
 
     /**
      * Derive a new serializer info with unchecked casts.<br>
@@ -38,7 +50,7 @@ public record SerializerInfo<T>(@Nullable Object configInstance, TypeSerializerL
      */
     @ApiStatus.Experimental
     public <O> SerializerInfo<O> derive(final Class<O> type, @Nullable final Type genericType, final O value) {
-        return new SerializerInfo<>(this.configInstance, this.typeSerializers, type, genericType, value);
+        return new SerializerInfo<>(this.configInstance, this.sectionInstance, this.typeSerializers, type, genericType, value);
     }
 
 }

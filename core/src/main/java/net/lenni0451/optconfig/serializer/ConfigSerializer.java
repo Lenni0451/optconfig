@@ -44,7 +44,7 @@ public class ConfigSerializer {
                     deserializeSection(configLoader, configInstance, sectionIndex.getSubSections().get(option), optionValue, unsafeCast(value), reload, configDiff.getSubSections().get(option.getName()));
                 } else {
                     ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
-                    Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, optionValue, value));
+                    Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(configInstance, sectionInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, optionValue, value));
                     if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
                     option.getFieldAccess().setValue(sectionInstance, deserializedValue);
                 }
@@ -95,7 +95,7 @@ public class ConfigSerializer {
                 if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
                 tuple = new NodeTuple(
                         configLoader.getYaml().represent(option.getName()),
-                        configLoader.getYaml().represent(typeSerializer.serialize(new SerializerInfo(configInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue)))
+                        configLoader.getYaml().represent(typeSerializer.serialize(new SerializerInfo(configInstance, sectionInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue)))
                 );
             }
             if (!section.isEmpty() && options.isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");

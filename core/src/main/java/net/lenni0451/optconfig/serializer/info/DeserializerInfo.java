@@ -11,6 +11,7 @@ import java.lang.reflect.Type;
  * Information about a deserialization process.
  *
  * @param configInstance  The config instance or null for static deserialization
+ * @param sectionInstance The instance of the section containing the config option or null for static deserialization
  * @param typeSerializers The list of type serializers
  * @param type            The type of the config option
  * @param genericType     The generic type of the config option
@@ -19,7 +20,8 @@ import java.lang.reflect.Type;
  * @param <T>             The type of the config option
  */
 @With
-public record DeserializerInfo<T>(@Nullable Object configInstance, TypeSerializerList typeSerializers, Class<T> type, @Nullable Type genericType, T configValue, Object value) {
+public record DeserializerInfo<T>(@Nullable Object configInstance, @Nullable Object sectionInstance, TypeSerializerList typeSerializers, Class<T> type, @Nullable Type genericType,
+        T configValue, Object value) {
 
     /**
      * Derive a new deserializer info with unchecked casts.<br>
@@ -51,7 +53,7 @@ public record DeserializerInfo<T>(@Nullable Object configInstance, TypeSerialize
      */
     @ApiStatus.Experimental
     public <O> DeserializerInfo<O> derive(final Class<O> type, @Nullable final Type genericType, final O currentValue, final Object serializedValue) {
-        return new DeserializerInfo<>(this.configInstance, this.typeSerializers, type, genericType, currentValue, serializedValue);
+        return new DeserializerInfo<>(this.configInstance, this.sectionInstance, this.typeSerializers, type, genericType, currentValue, serializedValue);
     }
 
 }
