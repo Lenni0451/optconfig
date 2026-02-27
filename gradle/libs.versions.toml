@@ -4,7 +4,7 @@
 findbugs = { module = "com.google.code.findbugs:jsr305", version = "3.0.2" }
 jetbrainsAnnotations = { module = "org.jetbrains:annotations", version = "26.1.0" }
 lombok = { module = "org.projectlombok:lombok", version = "1.18.42" }
-snakeyaml = { module = "org.yaml:snakeyaml", version = "2.5" }
+snakeyaml = { module = "org.yaml:snakeyaml", version = "2.6" }
 
 junit-bom = { module = "org.junit:junit-bom", version = "5.14.3" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
