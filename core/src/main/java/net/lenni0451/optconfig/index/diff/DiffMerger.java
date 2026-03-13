@@ -37,6 +37,7 @@ public class DiffMerger {
             for (String addedKey : configDiff.getAddedKeys()) {
                 NodeTuple tuple = YamlUtils.get(serializedNode, addedKey);
                 int index = serializedNode.getValue().indexOf(tuple);
+                index = Math.min(Math.max(0, index), readNode.getValue().size());
                 YamlUtils.insert(readNode, tuple, index);
             }
         }
