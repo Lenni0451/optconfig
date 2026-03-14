@@ -36,6 +36,12 @@ public class CLIConfigLoader<C> {
         );
     }
 
+    private List<CLIOption> loadOptions() {
+        List<CLIOption> options = new ArrayList<>();
+        CLIConfigSerializer.parseCLIOptions(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), new Stack<>(), options);
+        return options;
+    }
+
     /**
      * Print CLI help to the given Appendable (e.g. {@code System.out}).
      *
@@ -60,10 +66,7 @@ public class CLIConfigLoader<C> {
      * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
      */
     public String buildCLIHelp(final HelpOptions options) throws CLIIncompatibleOptionException {
-        List<CLIOption> cliOptions = new ArrayList<>();
-        //Populate CLI options
-        CLIConfigSerializer.parseCLIOptions(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), new Stack<>(), cliOptions);
-        return CLIHelpBuilder.build(cliOptions, options);
+        return CLIHelpBuilder.build(this.loadOptions(), options);
     }
 
     /**
@@ -77,13 +80,20 @@ public class CLIConfigLoader<C> {
      * @throws CLIMissingOptionException      If a required option is missing from the CLI arguments
      */
     public List<UnknownOption> loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException, CLIMissingOptionException {
-        List<CLIOption> cliOptions = new ArrayList<>();
-        //Populate CLI options
-        CLIConfigSerializer.parseCLIOptions(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), new Stack<>(), cliOptions);
         Map<String, Object> values = new HashMap<>();
-        List<UnknownOption> unknownOptions = CLIParser.parse(this.context.getConfigLoader().getYaml(), cliOptions, args, values);
+        List<UnknownOption> unknownOptions = CLIParser.parse(this.context.getConfigLoader().getYaml(), this.loadOptions(), args, values);
         ConfigSerializer.deserializeSection(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), values, !setNotReloadableOptions, null);
         return unknownOptions;
+    }
+
+    /**
+     * Emit CLI options for the current config as an array of strings that can be passed to the main method.<br>
+     * All options will be included, regardless of value.
+     *
+     * @return The emitted CLI options
+     */
+    public String[] emitCLIOptions() {
+        return CLIEmitter.emit(this.loadOptions());
     }
 
 }

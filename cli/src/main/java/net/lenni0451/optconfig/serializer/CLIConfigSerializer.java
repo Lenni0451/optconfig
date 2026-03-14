@@ -43,7 +43,9 @@ public class CLIConfigSerializer {
             } else {
                 ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
                 Object deserializedValue = optionValue;
-                if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
+                if (option.getValidator() != null) {
+                    deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
+                }
 
                 Node valueNode = configLoader.getYaml().represent(typeSerializer.serialize(new SerializerInfo(configInstance, sectionInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, deserializedValue)));
                 if (valueNode instanceof SequenceNode sequenceNode) {
