@@ -31,9 +31,9 @@ public class CLIHelpBuilder {
             HelpEntry entry;
             if (fieldType == boolean.class || fieldType == Boolean.class) {
                 if (helpOptions.showBooleanType()) {
-                    entry = new HelpEntry(name + " [" + fieldType.getSimpleName() + "]");
+                    entry = new HelpEntry(name + " [" + fieldType.getSimpleName() + "]", option.required());
                 } else {
-                    entry = new HelpEntry(name);
+                    entry = new HelpEntry(name, option.required());
                 }
             } else if (option.node() instanceof SequenceNode sequence) {
                 String entryType = fieldType.getSimpleName();
@@ -49,9 +49,9 @@ public class CLIHelpBuilder {
                 } else if (fieldType.isArray()) {
                     entryType = fieldType.getComponentType().getSimpleName();
                 }
-                entry = new HelpEntry(name + " <" + entryType + ">...");
+                entry = new HelpEntry(name + " <" + entryType + ">...", option.required());
             } else {
-                entry = new HelpEntry(name + " <" + fieldType.getSimpleName() + ">");
+                entry = new HelpEntry(name + " <" + fieldType.getSimpleName() + ">", option.required());
             }
             if (helpOptions.showDescription()) {
                 Collections.addAll(entry.description, description);
@@ -59,7 +59,7 @@ public class CLIHelpBuilder {
             if (helpOptions.showDepends() && dependencies.length > 0) {
                 entry.description.add("Depends on: " + String.join(", ", dependencies));
             }
-            if (helpOptions.showDefaults() && defaultValue != null) {
+            if (helpOptions.showDefaults() && defaultValue != null && !option.required()) {
                 entry.description.add("Default: " + defaultValue);
             }
             helpEntries.add(entry);
@@ -103,9 +103,22 @@ public class CLIHelpBuilder {
     }
 
     private static String toString(final List<HelpEntry> helpEntries, final HelpOptions helpOptions) {
-        int longestOption = Math.max(helpEntries.stream().map(HelpEntry::name).mapToInt(String::length).max().orElse(0), helpOptions.optionTitle().length());
-        int longestDescription = helpEntries.stream().flatMap(e -> e.description.stream()).mapToInt(String::length).max().orElse(0);
-        if (longestDescription > 0) longestDescription = Math.max(longestDescription, helpOptions.descriptionTitle().length());
+        int longestOption = Math.max(
+                helpEntries.stream()
+                        .map(entry -> ((helpOptions.showRequired() && entry.required) ? " (required)" : "") + entry.name())
+                        .mapToInt(String::length)
+                        .max()
+                        .orElse(0),
+                helpOptions.optionTitle().length()
+        );
+        int longestDescription = helpEntries.stream()
+                .flatMap(e -> e.description.stream())
+                .mapToInt(String::length)
+                .max()
+                .orElse(0);
+        if (longestDescription > 0) {
+            longestDescription = Math.max(longestDescription, helpOptions.descriptionTitle().length());
+        }
         String optionHeaderPadding = " ".repeat(longestOption - helpOptions.optionTitle().length() + helpOptions.columnPadding());
         StringBuilder out = new StringBuilder()
                 .append(helpOptions.optionTitle());
@@ -137,8 +150,11 @@ public class CLIHelpBuilder {
         }
         for (HelpEntry entry : helpEntries) {
             out.append(entry.name);
+            if (helpOptions.showRequired() && entry.required) {
+                out.append(" (required)");
+            }
             if (!entry.description.isEmpty()) {
-                out.append(" ".repeat(longestOption - entry.name.length() + helpOptions.columnPadding()));
+                out.append(" ".repeat(longestOption - (entry.required ? 11 : 0) - entry.name.length() + helpOptions.columnPadding()));
                 for (int i = 0; i < entry.description.size(); i++) {
                     if (i != 0) {
                         out.append("\n").append(" ".repeat(longestOption + helpOptions.columnPadding()));
@@ -152,9 +168,9 @@ public class CLIHelpBuilder {
     }
 
 
-    private record HelpEntry(String name, List<String> description) {
-        public HelpEntry(final String name) {
-            this(name, new ArrayList<>());
+    private record HelpEntry(String name, List<String> description, boolean required) {
+        public HelpEntry(final String name, final boolean required) {
+            this(name, new ArrayList<>(), required);
         }
     }
 

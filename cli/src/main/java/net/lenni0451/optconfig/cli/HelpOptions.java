@@ -4,6 +4,9 @@ import lombok.With;
 import lombok.experimental.WithBy;
 
 /**
+ * You should <b>never</b> construct this class yourself, but instead use the {@link #DEFAULT} and the withers to create a new instance with the desired options.<br>
+ * When new options are added, I will not create a constructor to preserve compatibility.
+ *
  * @param sort             Sort all options alphabetically by their name.<br>
  *                         This only affects the visual order of the options.<br>
  *                         By default, the options are in the order they were registered.
@@ -31,10 +34,10 @@ import lombok.experimental.WithBy;
  */
 @With
 @WithBy
-public record HelpOptions(boolean sort, boolean showBooleanType, boolean quoteStrings, boolean showDescription, boolean showDepends, boolean showDefaults,
+public record HelpOptions(boolean sort, boolean showBooleanType, boolean quoteStrings, boolean showDescription, boolean showDepends, boolean showDefaults, boolean showRequired,
         String optionTitle, String descriptionTitle, HeaderSeparator headerSeparator, char separatorChar, int columnPadding) {
 
-    public static final HelpOptions DEFAULT = new HelpOptions(false, false, true, true, true, true,
+    public static final HelpOptions DEFAULT = new HelpOptions(false, false, true, true, true, true, true,
             "Option", "Description", HeaderSeparator.COLUMN_WIDTH, '-', 2);
 
 }

@@ -4,6 +4,7 @@ import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.annotations.cli.CLIAliases;
 import net.lenni0451.optconfig.annotations.cli.CLIIgnore;
 import net.lenni0451.optconfig.annotations.cli.CLIName;
+import net.lenni0451.optconfig.annotations.cli.CLIRequired;
 import net.lenni0451.optconfig.cli.CLIOption;
 import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
 import net.lenni0451.optconfig.index.types.ConfigOption;
@@ -59,10 +60,11 @@ public class CLIConfigSerializer {
                 CLIName cliName = (CLIName) option.getExtraAnnotations()[0];
                 CLIAliases cliAliases = (CLIAliases) option.getExtraAnnotations()[1];
                 CLIIgnore cliIgnore = (CLIIgnore) option.getExtraAnnotations()[2];
+                CLIRequired cliRequired = (CLIRequired) option.getExtraAnnotations()[3];
                 if (cliIgnore == null) {
                     String name = (cliName == null || cliName.value().isBlank()) ? optionName : cliName.value();
                     String[] aliases = cliAliases == null ? EMPTY_STRING_ARRAY : cliAliases.value();
-                    cliOptions.add(new CLIOption(name, aliases, path.toArray(EMPTY_STRING_ARRAY), sectionInstance, option, deserializedValue, valueNode));
+                    cliOptions.add(new CLIOption(name, aliases, path.toArray(EMPTY_STRING_ARRAY), cliRequired != null, sectionInstance, option, deserializedValue, valueNode));
                 }
             }
         }

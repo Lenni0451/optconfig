@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.cli;
 
+import net.lenni0451.optconfig.exceptions.CLIMissingOptionException;
 import net.lenni0451.optconfig.exceptions.CLIParserException;
 import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.Yaml;
@@ -42,6 +43,12 @@ public class CLIParser {
                 }
             }
             unknownOptions.put(entry.getKey(), entry.getValue());
+        }
+
+        for (CLIOption cliOption : cliOptions) {
+            if (cliOption.required() && !parsedOptions.containsKey(cliOption)) {
+                throw new CLIMissingOptionException(cliOption);
+            }
         }
 
         for (Map.Entry<CLIOption, List<String>> entry : parsedOptions.entrySet()) {

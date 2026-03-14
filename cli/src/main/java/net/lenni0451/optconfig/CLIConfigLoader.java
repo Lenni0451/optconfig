@@ -3,8 +3,10 @@ package net.lenni0451.optconfig;
 import net.lenni0451.optconfig.annotations.cli.CLIAliases;
 import net.lenni0451.optconfig.annotations.cli.CLIIgnore;
 import net.lenni0451.optconfig.annotations.cli.CLIName;
+import net.lenni0451.optconfig.annotations.cli.CLIRequired;
 import net.lenni0451.optconfig.cli.*;
 import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
+import net.lenni0451.optconfig.exceptions.CLIMissingOptionException;
 import net.lenni0451.optconfig.exceptions.CLIParserException;
 import net.lenni0451.optconfig.index.ClassIndexer;
 import net.lenni0451.optconfig.index.ConfigType;
@@ -29,7 +31,8 @@ public class CLIConfigLoader<C> {
                 context.getConfigInstance(),
                 CLIName.class,
                 CLIAliases.class,
-                CLIIgnore.class
+                CLIIgnore.class,
+                CLIRequired.class
         );
     }
 
@@ -71,8 +74,9 @@ public class CLIConfigLoader<C> {
      * @return A list of unknown options and their values
      * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
      * @throws CLIParserException             If the user provided invalid CLI arguments
+     * @throws CLIMissingOptionException      If a required option is missing from the CLI arguments
      */
-    public List<UnknownOption> loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException {
+    public List<UnknownOption> loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException, CLIMissingOptionException {
         List<CLIOption> cliOptions = new ArrayList<>();
         //Populate CLI options
         CLIConfigSerializer.parseCLIOptions(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), new Stack<>(), cliOptions);

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ApiStatus.Internal
-public record CLIOption(String name, String[] aliases, String[] path, @Nullable Object sectionInstance, ConfigOption configOption, Object value, Node node) {
+public record CLIOption(String name, String[] aliases, String[] path, boolean required, @Nullable Object sectionInstance, ConfigOption configOption, Object value, Node node) {
 
     public List<String> getNames() {
         String path = Stream.of(this.path).map(s -> s.replace('.', '-')).collect(Collectors.joining("."));
