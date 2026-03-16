@@ -10,11 +10,16 @@ import java.util.Stack;
 public class CLIIncompatibleOptionException extends RuntimeException {
 
     public static CLIIncompatibleOptionException invalidList(final Stack<String> path, final String name) {
-        return new CLIIncompatibleOptionException("The list option '" + String.join(">", path) + ">" + name + "' contains elements that are incompatible with the CLI and cannot be used there");
+        return new CLIIncompatibleOptionException("The list option '" + formatPathAndName(path, name) + "' contains elements that are incompatible with the CLI and cannot be used there");
     }
 
     public static CLIIncompatibleOptionException invalidOption(final Stack<String> path, final String name) {
-        return new CLIIncompatibleOptionException("The option '" + String.join(">", path) + ">" + name + "' is incompatible with the CLI and cannot be used there");
+        return new CLIIncompatibleOptionException("The option '" + formatPathAndName(path, name) + "' is incompatible with the CLI and cannot be used there");
+    }
+
+    private static String formatPathAndName(final Stack<String> path, final String name) {
+        if (path.isEmpty()) return name;
+        return String.join(">", path) + ">" + name;
     }
 
 
