@@ -141,7 +141,7 @@ public class ClassIndexer {
                         field.setValue(sectionInstance, subSectionInstance);
                     }
                 }
-                sectionIndex.addSubSection(configOption, indexClass(subSectionType, (Class) field.getType(), subSectionInstance, classAccessFactory));
+                sectionIndex.addSubSection(configOption, indexClass(subSectionType, (Class) field.getType(), subSectionInstance, classAccessFactory, extraAnnotations));
             }
         }
         if (sectionIndex.getConfigType().equals(ConfigType.STATIC)) {
@@ -163,7 +163,7 @@ public class ClassIndexer {
                         null
                 );
                 sectionIndex.addOption(subSectionOption);
-                sectionIndex.addSubSection(subSectionOption, indexClass(sectionIndex.getConfigType(), innerClass.getClazz(), null, classAccessFactory));
+                sectionIndex.addSubSection(subSectionOption, indexClass(sectionIndex.getConfigType(), innerClass.getClazz(), null, classAccessFactory, extraAnnotations));
             }
         }
         if (!validatorMethods.isEmpty()) throw new InvalidValidatorException(clazz, validatorMethods.values().iterator().next(), "has no corresponding option");
