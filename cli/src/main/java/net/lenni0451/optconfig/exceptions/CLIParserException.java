@@ -17,6 +17,10 @@ public class CLIParserException extends Exception {
         return new CLIParserException("Multiple values '" + String.join(", ", values) + "' provided for single-value option: '" + option.formatNameAndAliases() + "'");
     }
 
+    public static CLIParserException invalidMapValue(final CLIOption option, final String value) {
+        return new CLIParserException("Invalid map value '" + value + "' provided for option: '" + option.formatNameAndAliases() + "'. Expected format: key=value");
+    }
+
 
     private CLIParserException(final String message) {
         super(message);

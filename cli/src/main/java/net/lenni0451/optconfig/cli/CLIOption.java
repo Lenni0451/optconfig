@@ -15,6 +15,7 @@ public record CLIOption(String name, String[] aliases, String[] path, boolean re
 
     public List<String> getNames() {
         String path = Stream.of(this.path).map(s -> s.replace('.', '-')).collect(Collectors.joining("."));
+        if (!path.isEmpty()) path += ".";
         List<String> names = new ArrayList<>();
         for (String alias : this.aliases) {
             if (alias.isEmpty()) continue;

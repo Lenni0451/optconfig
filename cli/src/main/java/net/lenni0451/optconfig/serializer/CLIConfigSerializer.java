@@ -11,10 +11,7 @@ import net.lenni0451.optconfig.index.types.ConfigOption;
 import net.lenni0451.optconfig.index.types.SectionIndex;
 import net.lenni0451.optconfig.serializer.info.SerializerInfo;
 import org.jetbrains.annotations.ApiStatus;
-import org.yaml.snakeyaml.nodes.MappingNode;
-import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.ScalarNode;
-import org.yaml.snakeyaml.nodes.SequenceNode;
+import org.yaml.snakeyaml.nodes.*;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
@@ -54,11 +51,15 @@ public class CLIConfigSerializer {
                             throw CLIIncompatibleOptionException.invalidList(path, option.getName());
                         }
                     }
-                } else if (valueNode instanceof MappingNode) {
-                    throw CLIIncompatibleOptionException.invalidOption(path, option.getName());
+                } else if (valueNode instanceof MappingNode mappingNode) {
+                    for (NodeTuple nodeTuple : mappingNode.getValue()) {
+                        if (!(nodeTuple.getKeyNode() instanceof ScalarNode) && !(nodeTuple.getValueNode() instanceof ScalarNode)) {
+                            throw CLIIncompatibleOptionException.invalidMap(path, option.getName());
+                        }
+                    }
                 }
 
-                //We can assume the annotations exist because the ClassIndexer should have been informed about them
+                // We can assume the annotations exist because the ClassIndexer should have been informed about them
                 CLIName cliName = (CLIName) option.getExtraAnnotations()[0];
                 CLIAliases cliAliases = (CLIAliases) option.getExtraAnnotations()[1];
                 CLIIgnore cliIgnore = (CLIIgnore) option.getExtraAnnotations()[2];

@@ -2,16 +2,14 @@ package net.lenni0451.optconfig.cli;
 
 import net.lenni0451.optconfig.utils.generics.Generics;
 import org.jetbrains.annotations.ApiStatus;
-import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.ScalarNode;
-import org.yaml.snakeyaml.nodes.SequenceNode;
-import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.nodes.*;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @ApiStatus.Internal
 public class CLIHelpBuilder {
@@ -37,19 +35,42 @@ public class CLIHelpBuilder {
                 }
             } else if (option.node() instanceof SequenceNode sequence) {
                 String entryType = fieldType.getSimpleName();
-                if (!sequence.getValue().isEmpty()) {
-                    Node firstEntry = sequence.getValue().get(0);
-                    if (firstEntry instanceof ScalarNode scalarEntry) {
-                        entryType = scalarEntry.getTag().getClassName();
-                    }
-                } else if (List.class.isAssignableFrom(fieldType)) {
+                if (List.class.isAssignableFrom(fieldType)) {
                     Type entryGenericType = Generics.getListEntryGenericType(option.configOption().getFieldAccess().getGenericType());
                     Class<?> genericType = Generics.resolveTypeToClass(entryGenericType);
                     if (genericType != null) entryType = genericType.getSimpleName();
                 } else if (fieldType.isArray()) {
                     entryType = fieldType.getComponentType().getSimpleName();
+                } else if (!sequence.getValue().isEmpty()) {
+                    Node firstEntry = sequence.getValue().get(0);
+                    if (firstEntry instanceof ScalarNode scalarEntry) {
+                        entryType = scalarEntry.getTag().getClassName();
+                    }
                 }
                 entry = new HelpEntry(name + " <" + entryType + ">...", option.required());
+            } else if (option.node() instanceof MappingNode mapping) {
+                String keyType = "key";
+                String valueType = "value";
+                if (Map.class.isAssignableFrom(fieldType)) {
+                    Type fieldGenericType = option.configOption().getFieldAccess().getGenericType();
+
+                    Type keyGenericType = Generics.getMapKeyGenericType(fieldGenericType);
+                    Class<?> keyGenericClass = Generics.resolveTypeToClass(keyGenericType);
+                    if (keyGenericType != null) keyType = keyGenericClass.getSimpleName();
+
+                    Type valueGenericType = Generics.getMapValueGenericType(fieldGenericType);
+                    Class<?> valueGenericClass = Generics.resolveTypeToClass(valueGenericType);
+                    if (valueGenericType != null) valueType = valueGenericClass.getSimpleName();
+                } else if (!mapping.getValue().isEmpty()) {
+                    NodeTuple tuple = mapping.getValue().get(0);
+                    if (tuple.getKeyNode() instanceof ScalarNode scalarNode) {
+                        keyType = scalarNode.getTag().getClassName();
+                    }
+                    if (tuple.getValueNode() instanceof ScalarNode scalarNode) {
+                        valueType = scalarNode.getTag().getClassName();
+                    }
+                }
+                entry = new HelpEntry(name + " <" + keyType + ">=<" + valueType + ">", option.required());
             } else {
                 entry = new HelpEntry(name + " <" + fieldType.getSimpleName() + ">", option.required());
             }
@@ -97,7 +118,22 @@ public class CLIHelpBuilder {
                     yield String.join(", ", values);
                 }
             }
-            case mapping -> throw new IllegalArgumentException("Mapping nodes are not supported for default value representation");
+            case mapping -> {
+                MappingNode mappingNode = (MappingNode) node;
+                List<String> values = new ArrayList<>(mappingNode.getValue().size());
+                for (NodeTuple tuple : mappingNode.getValue()) {
+                    String key = getDefaultValueString(tuple.getKeyNode(), false);
+                    String value = getDefaultValueString(tuple.getValueNode(), false);
+                    if (key != null && value != null) {
+                        values.add(key + "=" + value);
+                    }
+                }
+                if (values.isEmpty()) {
+                    yield null;
+                } else {
+                    yield String.join(", ", values);
+                }
+            }
             case anchor -> null;
         };
     }

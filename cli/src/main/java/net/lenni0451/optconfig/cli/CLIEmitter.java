@@ -1,9 +1,6 @@
 package net.lenni0451.optconfig.cli;
 
-import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.ScalarNode;
-import org.yaml.snakeyaml.nodes.SequenceNode;
-import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.nodes.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +40,18 @@ public class CLIEmitter {
                 }
                 yield values;
             }
-            case mapping -> throw new IllegalArgumentException("Mapping nodes are not supported for value representation");
+            case mapping -> {
+                MappingNode mappingNode = (MappingNode) node;
+                List<String> values = new ArrayList<>(mappingNode.getValue().size());
+                for (NodeTuple tuple : mappingNode.getValue()) {
+                    String key = getValues(tuple.getKeyNode()).stream().findFirst().orElse("");
+                    String value = getValues(tuple.getValueNode()).stream().findFirst().orElse("");
+                    if (!key.isEmpty() && !value.isEmpty()) {
+                        values.add(key + "=" + value);
+                    }
+                }
+                yield values;
+            }
             case anchor -> List.of();
         };
     }

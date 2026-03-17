@@ -13,8 +13,8 @@ public class CLIIncompatibleOptionException extends RuntimeException {
         return new CLIIncompatibleOptionException("The list option '" + formatPathAndName(path, name) + "' contains elements that are incompatible with the CLI and cannot be used there");
     }
 
-    public static CLIIncompatibleOptionException invalidOption(final Stack<String> path, final String name) {
-        return new CLIIncompatibleOptionException("The option '" + formatPathAndName(path, name) + "' is incompatible with the CLI and cannot be used there");
+    public static CLIIncompatibleOptionException invalidMap(final Stack<String> path, final String name) {
+        return new CLIIncompatibleOptionException("The map option '" + formatPathAndName(path, name) + "' contains keys or values that are incompatible with the CLI and cannot be used there");
     }
 
     private static String formatPathAndName(final Stack<String> path, final String name) {
