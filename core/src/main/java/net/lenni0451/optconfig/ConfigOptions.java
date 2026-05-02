@@ -53,10 +53,16 @@ public class ConfigOptions {
      */
     private boolean spaceBetweenOptions = true;
     /**
-     * Automatically add a comment to options that are marked with {@link NotReloadable}.<br>
-     * Default: {@code true}
+     * The comment to add to options and sections that are marked with {@link NotReloadable}.<br>
+     * Default: {@code "This option is not reloadable."}
      */
-    private boolean notReloadableComment = true;
+    private String[] notReloadableComment = {"This option is not reloadable."};
+    /**
+     * The comment to add to sections that are marked with {@link NotReloadable}.<br>
+     * The comment from {@link #notReloadableComment} will be added above this comment.<br>
+     * Default: {@code "This applies to all options in this section."}
+     */
+    private String[] notReloadableSectionComment = {"This applies to all options in this section."};
     /**
      * The factory for the {@link ClassAccess} instances.<br>
      * Can be set to use a different access method than reflection.<br>

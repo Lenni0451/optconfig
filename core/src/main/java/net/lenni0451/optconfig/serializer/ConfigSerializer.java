@@ -100,10 +100,10 @@ public class ConfigSerializer {
             }
             if (!section.isEmpty() && options.isSpaceBetweenOptions()) YamlUtils.appendComment(tuple, options.getCommentSpacing(), "\n");
             YamlUtils.appendComment(tuple, options.getCommentSpacing(), option.getDescription());
-            if (!option.isReloadable() && options.isNotReloadableComment()) {
-                YamlUtils.appendComment(tuple, options.getCommentSpacing(), "This option is not reloadable.");
+            if (!option.isReloadable()) {
+                YamlUtils.appendComment(tuple, options.getCommentSpacing(), options.getNotReloadableComment());
                 if (sectionIndex.getSubSections().containsKey(option)) {
-                    YamlUtils.appendComment(tuple, options.getCommentSpacing(), "This applies to all options in this section.");
+                    YamlUtils.appendComment(tuple, options.getCommentSpacing(), options.getNotReloadableSectionComment());
                 }
             }
             section.add(tuple);
