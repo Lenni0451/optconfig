@@ -23,7 +23,7 @@ public class CLIHelpBuilder {
             String name = option.formatNameAndAliases();
             String[] description = option.configOption().getDescription();
             String[] dependencies = option.configOption().getDependencies();
-            String defaultValue = getDefaultValueString(option, helpOptions.quoteStrings());
+            String defaultValue = getDefaultValueString(option.node(), helpOptions.quoteStrings());
 
             Class<?> fieldType = option.configOption().getFieldAccess().getType();
             HelpEntry entry;
@@ -86,13 +86,6 @@ public class CLIHelpBuilder {
             helpEntries.add(entry);
         }
         return toString(helpEntries, helpOptions);
-    }
-
-    @Nullable
-    private static String getDefaultValueString(final CLIOption option, final boolean quoteStrings) {
-        Object value = option.value();
-        if (value == null) return null;
-        return getDefaultValueString(option.node(), quoteStrings);
     }
 
     @Nullable
