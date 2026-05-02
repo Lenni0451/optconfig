@@ -17,4 +17,9 @@ public @interface CLIName {
      */
     String value();
 
+    /**
+     * @return If the section name should be omitted for this option.
+     */
+    boolean omitSection() default false;
+
 }

@@ -67,7 +67,17 @@ public class CLIConfigSerializer {
                 if (cliIgnore == null) {
                     String name = (cliName == null || cliName.value().isBlank()) ? optionName : cliName.value();
                     String[] aliases = cliAliases == null ? EMPTY_STRING_ARRAY : cliAliases.value();
-                    cliOptions.add(new CLIOption(name, aliases, path.toArray(EMPTY_STRING_ARRAY), cliRequired != null, sectionInstance, option, deserializedValue, valueNode));
+                    cliOptions.add(new CLIOption(
+                            name,
+                            aliases,
+                            path.toArray(EMPTY_STRING_ARRAY),
+                            cliName != null && cliName.omitSection(),
+                            cliRequired != null,
+                            sectionInstance,
+                            option,
+                            deserializedValue,
+                            valueNode
+                    ));
                 }
             }
         }

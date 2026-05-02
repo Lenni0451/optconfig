@@ -5,6 +5,7 @@ import net.lenni0451.optconfig.annotations.cli.CLIIgnore;
 import net.lenni0451.optconfig.annotations.cli.CLIName;
 import net.lenni0451.optconfig.annotations.cli.CLIRequired;
 import net.lenni0451.optconfig.cli.*;
+import net.lenni0451.optconfig.exceptions.CLIDuplicateOptionException;
 import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
 import net.lenni0451.optconfig.exceptions.CLIMissingOptionException;
 import net.lenni0451.optconfig.exceptions.CLIParserException;
@@ -39,6 +40,18 @@ public class CLIConfigLoader<C> {
     private List<CLIOption> loadOptions() {
         List<CLIOption> options = new ArrayList<>();
         CLIConfigSerializer.parseCLIOptions(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), new Stack<>(), options);
+        Set<String> allNames = new HashSet<>();
+        Set<String> duplicateNames = new HashSet<>();
+        for (CLIOption option : options) {
+            for (String name : option.getNames()) {
+                if (!allNames.add(name)) {
+                    duplicateNames.add(name);
+                }
+            }
+        }
+        if (!duplicateNames.isEmpty()) {
+            throw new CLIDuplicateOptionException(duplicateNames);
+        }
         return options;
     }
 

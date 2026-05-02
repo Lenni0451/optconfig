@@ -11,11 +11,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ApiStatus.Internal
-public record CLIOption(String name, String[] aliases, String[] path, boolean required, @Nullable Object sectionInstance, ConfigOption configOption, Object value, Node node) {
+public record CLIOption(String name, String[] aliases, String[] path, boolean omitSection, boolean required, @Nullable Object sectionInstance, ConfigOption configOption, Object value, Node node) {
 
     public List<String> getNames() {
-        String path = Stream.of(this.path).map(s -> s.replace('.', '-')).collect(Collectors.joining("."));
+        String path;
+        if (this.omitSection) {
+            path = "";
+        } else {
+            path = Stream.of(this.path).map(s -> s.replace('.', '-')).collect(Collectors.joining("."));
+        }
         if (!path.isEmpty()) path += ".";
+
         List<String> names = new ArrayList<>();
         for (String alias : this.aliases) {
             if (alias.isEmpty()) continue;
