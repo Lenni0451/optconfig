@@ -18,6 +18,7 @@ public class GenericArraySerializer implements ConfigTypeSerializer<Object> {
 
     @Override
     public Object deserialize(DeserializerInfo<Object> info) {
+        if (info.value() == null) return null;
         if (!info.type().isArray()) throw new InvalidSerializedObjectException(Array.class, info.type());
 
         if (info.value().getClass().isArray()) {
@@ -54,6 +55,7 @@ public class GenericArraySerializer implements ConfigTypeSerializer<Object> {
 
     @Override
     public Object serialize(SerializerInfo<Object> info) {
+        if (info.value() == null) return null;
         int arrayLength = Array.getLength(info.value());
         List<Object> serializedList = new ArrayList<>(arrayLength); //YAML treats arrays and lists the same way
         Type componentGenericType = Generics.getArrayComponentGenericType(info.genericType());

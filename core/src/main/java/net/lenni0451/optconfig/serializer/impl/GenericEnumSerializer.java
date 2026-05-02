@@ -16,7 +16,9 @@ public class GenericEnumSerializer implements ConfigTypeSerializer<Enum> {
 
     @Override
     public Enum deserialize(DeserializerInfo<Enum> info) {
-        if (info.value() instanceof Integer i) {
+        if (info.value() == null) {
+            return null;
+        } else if (info.value() instanceof Integer i) {
             return info.type().getEnumConstants()[i];
         } else if (info.value() instanceof String s) {
             return Enum.valueOf(info.type(), s.toUpperCase(Locale.ROOT));
@@ -26,6 +28,7 @@ public class GenericEnumSerializer implements ConfigTypeSerializer<Enum> {
 
     @Override
     public Object serialize(SerializerInfo<Enum> info) {
+        if (info.value() == null) return null;
         return info.value().name();
     }
 
