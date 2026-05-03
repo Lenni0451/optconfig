@@ -2,18 +2,9 @@ package net.lenni0451.optconfig.cli.model;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
 
 public record UnknownOption(String name, String[] values) {
-
-    public static String[] toArgs(final Collection<UnknownOption> unknownOptions) {
-        List<String> args = new ArrayList<>();
-        for (UnknownOption unknownOption : unknownOptions) {
-            Collections.addAll(args, unknownOption.toArgs());
-        }
-        return args.toArray(new String[0]);
-    }
-
 
     public String[] toArgs() {
         if (this.values.length < 1) {

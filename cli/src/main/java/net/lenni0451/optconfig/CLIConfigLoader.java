@@ -9,6 +9,7 @@ import net.lenni0451.optconfig.cli.CLIHelpBuilder;
 import net.lenni0451.optconfig.cli.CLIOption;
 import net.lenni0451.optconfig.cli.CLIParser;
 import net.lenni0451.optconfig.cli.model.HelpOptions;
+import net.lenni0451.optconfig.cli.model.LoadedOptions;
 import net.lenni0451.optconfig.cli.model.UnknownOption;
 import net.lenni0451.optconfig.exceptions.CLIDuplicateOptionException;
 import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
@@ -92,16 +93,16 @@ public class CLIConfigLoader<C> {
      *
      * @param args                    The CLI arguments
      * @param setNotReloadableOptions If true, not reloadable options will also be set from the CLI arguments
-     * @return A list of unknown options and their values
+     * @return The loaded options and unknown options
      * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
      * @throws CLIParserException             If the user provided invalid CLI arguments
      * @throws CLIMissingOptionException      If a required option is missing from the CLI arguments
      */
-    public List<UnknownOption> loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException, CLIMissingOptionException {
+    public LoadedOptions loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException, CLIMissingOptionException {
         Map<String, Object> values = new HashMap<>();
         List<UnknownOption> unknownOptions = CLIParser.parse(this.context.getConfigLoader().getYaml(), this.loadOptions(), args, values);
         ConfigSerializer.deserializeSection(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), values, !setNotReloadableOptions, null);
-        return unknownOptions;
+        return new LoadedOptions(values.keySet(), unknownOptions);
     }
 
     /**
