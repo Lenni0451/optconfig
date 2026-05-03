@@ -21,6 +21,8 @@ import lombok.experimental.WithBy;
  *                         By default, the dependencies are shown.
  * @param showDefaults     Show the default values of options.<br>
  *                         By default, the default values are shown.
+ * @param showRequired     Show if a CLI option is required.<br>
+ *                         By default, the indicator is shown.
  * @param optionTitle      The title of the option column.<br>
  *                         By default, the title is "Option".
  * @param descriptionTitle The title of the description/default/dependencies column.<br>
