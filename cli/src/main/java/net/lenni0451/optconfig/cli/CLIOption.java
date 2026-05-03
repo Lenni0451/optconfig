@@ -11,9 +11,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ApiStatus.Internal
-public record CLIOption(String name, String[] aliases, String[] path, boolean omitSection, boolean required, @Nullable Object sectionInstance, ConfigOption configOption, Object value, Node node) {
+public record CLIOption(String name, String[] aliases, boolean hiddenAliases, String[] path, boolean omitSection, boolean required, @Nullable Object sectionInstance, ConfigOption configOption,
+        Object value, Node node) {
 
     public List<String> getNames() {
+        return this.getNames(false);
+    }
+
+    public List<String> getNames(final boolean skipAliases) {
         String path;
         if (this.omitSection) {
             path = "";
@@ -23,9 +28,11 @@ public record CLIOption(String name, String[] aliases, String[] path, boolean om
         if (!path.isEmpty()) path += ".";
 
         List<String> names = new ArrayList<>();
-        for (String alias : this.aliases) {
-            if (alias.isEmpty()) continue;
-            names.add(path + alias.replace('.', '-'));
+        if (!skipAliases) {
+            for (String alias : this.aliases) {
+                if (alias.isEmpty()) continue;
+                names.add(path + alias.replace('.', '-'));
+            }
         }
         names.add(path + this.name.replace('.', '-'));
         for (int i = 0; i < names.size(); i++) {

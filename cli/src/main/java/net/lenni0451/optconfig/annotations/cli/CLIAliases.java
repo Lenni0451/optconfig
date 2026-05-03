@@ -17,4 +17,9 @@ public @interface CLIAliases {
      */
     String[] value();
 
+    /**
+     * @return Hide this alias from the CLI help
+     */
+    boolean hidden() default false;
+
 }

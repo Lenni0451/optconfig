@@ -23,7 +23,7 @@ public class CLIHelpBuilder {
 
         HelpTable helpTable = new HelpTable(helpOptions);
         for (CLIOption option : options) {
-            List<String> names = option.getNames();
+            List<String> names = option.getNames(option.hiddenAliases());
             String[] description = option.configOption().getDescription();
             String[] dependencies = option.configOption().getDependencies();
             String defaultValue = getDefaultValueString(option.node(), helpOptions.quoteStrings());
