@@ -3,6 +3,7 @@ package net.lenni0451.optconfig.serializer;
 import net.lenni0451.optconfig.ConfigLoader;
 import net.lenni0451.optconfig.ConfigOptions;
 import net.lenni0451.optconfig.annotations.OptConfig;
+import net.lenni0451.optconfig.exceptions.InvalidSerializedObjectException;
 import net.lenni0451.optconfig.exceptions.OutdatedClassVersionException;
 import net.lenni0451.optconfig.index.diff.ConfigDiff;
 import net.lenni0451.optconfig.index.types.ConfigIndex;
@@ -46,6 +47,7 @@ public class ConfigSerializer {
                     ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
                     Object deserializedValue = typeSerializer.deserialize(new DeserializerInfo(configInstance, sectionInstance, configLoader.getTypeSerializers(), optionType, optionGenericType, optionValue, value));
                     if (option.getValidator() != null) deserializedValue = option.getValidator().invoke(sectionInstance, deserializedValue);
+                    verifyFieldType(option, deserializedValue);
                     option.getFieldAccess().setValue(sectionInstance, deserializedValue);
                 }
             } catch (Throwable t) {
@@ -56,6 +58,21 @@ public class ConfigSerializer {
             }
         }
         return configDiff;
+    }
+
+    private static void verifyFieldType(final ConfigOption option, final Object deserializedValue) {
+        Class<?> expectedType = option.getFieldAccess().getType();
+        if (expectedType == boolean.class) expectedType = Boolean.class;
+        else if (expectedType == byte.class) expectedType = Byte.class;
+        else if (expectedType == short.class) expectedType = Short.class;
+        else if (expectedType == char.class) expectedType = Character.class;
+        else if (expectedType == int.class) expectedType = Integer.class;
+        else if (expectedType == long.class) expectedType = Long.class;
+        else if (expectedType == float.class) expectedType = Float.class;
+        else if (expectedType == double.class) expectedType = Double.class;
+        if (!expectedType.isInstance(deserializedValue)) {
+            throw new InvalidSerializedObjectException(expectedType, deserializedValue);
+        }
     }
 
     private static void runMigration(final ConfigLoader<?> configLoader, final ConfigIndex configIndex, final Map<String, Object> values) {

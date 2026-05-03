@@ -24,4 +24,5 @@ class ValueOptionWithoutValueTest {
         @Option("a")
         public int a;
     }
+
 }

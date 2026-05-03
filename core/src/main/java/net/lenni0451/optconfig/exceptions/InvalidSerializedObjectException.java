@@ -10,6 +10,10 @@ import javax.annotation.Nullable;
  */
 public class InvalidSerializedObjectException extends RuntimeException {
 
+    public InvalidSerializedObjectException(final Class<?> expected, @Nullable final Object actual) {
+        this(expected, actual == null ? null : actual.getClass());
+    }
+
     public InvalidSerializedObjectException(final Class<?> expected, @Nullable final Class<?> actual) {
         super("Invalid serialized object, expected " + expected.getName() + " but got " + (actual == null ? "null" : actual.getName()));
     }
