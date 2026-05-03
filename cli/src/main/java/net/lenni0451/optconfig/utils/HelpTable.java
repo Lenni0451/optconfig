@@ -1,6 +1,6 @@
 package net.lenni0451.optconfig.utils;
 
-import net.lenni0451.optconfig.cli.HelpOptions;
+import net.lenni0451.optconfig.cli.model.HelpOptions;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;

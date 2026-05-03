@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.cli;
 
+import net.lenni0451.optconfig.cli.model.UnknownOption;
 import net.lenni0451.optconfig.exceptions.CLIMissingOptionException;
 import net.lenni0451.optconfig.exceptions.CLIParserException;
 import org.jetbrains.annotations.ApiStatus;

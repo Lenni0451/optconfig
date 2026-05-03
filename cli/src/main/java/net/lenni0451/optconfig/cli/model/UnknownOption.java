@@ -1,4 +1,4 @@
-package net.lenni0451.optconfig.cli;
+package net.lenni0451.optconfig.cli.model;
 
 import org.jetbrains.annotations.NotNull;
 

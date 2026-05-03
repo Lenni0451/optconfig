@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.cli;
 
+import net.lenni0451.optconfig.cli.model.HelpOptions;
 import net.lenni0451.optconfig.utils.HelpTable;
 import net.lenni0451.optconfig.utils.generics.Generics;
 import org.jetbrains.annotations.ApiStatus;

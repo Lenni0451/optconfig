@@ -1,4 +1,4 @@
-package net.lenni0451.optconfig.cli;
+package net.lenni0451.optconfig.cli.model;
 
 /**
  * How to separate the header from the rest of the table.

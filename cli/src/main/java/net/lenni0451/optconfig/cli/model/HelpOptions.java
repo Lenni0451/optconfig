@@ -1,4 +1,4 @@
-package net.lenni0451.optconfig.cli;
+package net.lenni0451.optconfig.cli.model;
 
 import lombok.With;
 import lombok.experimental.WithBy;
