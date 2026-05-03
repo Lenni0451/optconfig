@@ -2,6 +2,7 @@ package net.lenni0451.optconfig.cli;
 
 import net.lenni0451.optconfig.cli.model.UnknownOption;
 import net.lenni0451.optconfig.exceptions.CLIMissingOptionException;
+import net.lenni0451.optconfig.exceptions.CLIMissingOptionValueException;
 import net.lenni0451.optconfig.exceptions.CLIParserException;
 import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.Yaml;
@@ -93,7 +94,12 @@ public class CLIParser {
                 value = map;
             } else { //Single value option
                 if (entry.getValue().isEmpty()) {
-                    value = true;
+                    Class<?> type = entry.getKey().configOption().getFieldAccess().getType();
+                    if (type != boolean.class && type != Boolean.class) {
+                        throw new CLIMissingOptionValueException(entry.getKey());
+                    } else {
+                        value = true;
+                    }
                 } else if (entry.getValue().size() == 1) {
                     value = yaml.load(entry.getValue().get(0));
                 } else {
