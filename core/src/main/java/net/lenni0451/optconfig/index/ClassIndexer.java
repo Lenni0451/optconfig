@@ -61,9 +61,9 @@ public class ClassIndexer {
     private static SectionIndex indexClass(final ConfigType configType, final Class<?> clazz, final Object instance, final ClassAccess classAccess, final ClassAccessFactory classAccessFactory, final Class<? extends Annotation>[] extraAnnotations, final boolean loadOnly) {
         SectionIndex sectionIndex;
         if (classAccess.getAnnotation(OptConfig.class) != null) {
-            OptConfig optConfig = classAccess.getAnnotation(OptConfig.class);
+            OptConfig optConfig = getOptConfigAnnotation(classAccessFactory, classAccess);
             ConfigIndex configIndex = new ConfigIndex(configType, clazz, optConfig);
-            loadMigrators(classAccess, configIndex);
+            loadMigrators(classAccessFactory, classAccess, configIndex);
             sectionIndex = configIndex;
         } else if (classAccess.getAnnotation(Section.class) != null) {
             sectionIndex = new SectionIndex(configType, clazz);
@@ -71,7 +71,7 @@ public class ClassIndexer {
             throw new IllegalArgumentException("The class " + clazz.getName() + " is not annotated with @OptConfig or @Section");
         }
         indexFields(sectionIndex, instance, classAccess, classAccessFactory, extraAnnotations);
-        loadSuperClasses(configType, clazz, instance, classAccess, sectionIndex, classAccessFactory, extraAnnotations);
+        loadSuperClassSections(configType, clazz, instance, classAccess, sectionIndex, classAccessFactory, extraAnnotations);
         if (!loadOnly) {
             sectionIndex.sortOptions();
             addInMemoryFields(sectionIndex);
@@ -79,7 +79,28 @@ public class ClassIndexer {
         return sectionIndex;
     }
 
-    private static void loadMigrators(final ClassAccess classAccess, final ConfigIndex configIndex) {
+    private static OptConfig getOptConfigAnnotation(final ClassAccessFactory classAccessFactory, final ClassAccess classAccess) {
+        CheckSuperclass checkSuperclass = classAccess.getAnnotation(CheckSuperclass.class);
+        if (checkSuperclass != null && checkSuperclass.useParentAnnotation()) {
+            ClassAccess superClassAccess = classAccessFactory.create(classAccess.getClazz().getSuperclass());
+            OptConfig optConfig = superClassAccess.getAnnotation(OptConfig.class);
+            if (optConfig != null) {
+                return optConfig;
+            }
+        }
+
+        return classAccess.getAnnotation(OptConfig.class);
+    }
+
+    private static void loadMigrators(final ClassAccessFactory classAccessFactory, final ClassAccess classAccess, final ConfigIndex configIndex) {
+        CheckSuperclass checkSuperclass = classAccess.getAnnotation(CheckSuperclass.class);
+        if (checkSuperclass != null && checkSuperclass.useParentAnnotation()) {
+            ClassAccess superClassAccess = classAccessFactory.create(classAccess.getClazz().getSuperclass());
+            if (superClassAccess.getAnnotation(OptConfig.class) != null) {
+                loadMigrators(classAccessFactory, superClassAccess, configIndex);
+            }
+        }
+
         Migrators migrators = classAccess.getAnnotation(Migrators.class);
         if (migrators != null) {
             for (Migrator migrator : migrators.value()) {
@@ -123,7 +144,7 @@ public class ClassIndexer {
             }
             sectionIndex.addOption(configOption);
 
-            Section section = field.getType().getDeclaredAnnotation(Section.class);
+            Section section = classAccessFactory.create(field.getType()).getAnnotation(Section.class);
             if (section != null) {
                 if (!section.name().isEmpty() || section.description().length != 0 || !section.reloadable()) {
                     throw new IllegalStateException("Sections included using fields must not have a name, description or reloadable state");
@@ -175,20 +196,19 @@ public class ClassIndexer {
         }
     }
 
-    private static void loadSuperClasses(final ConfigType configType, final Class<?> clazz, final Object instance, final ClassAccess classAccess, final SectionIndex sectionIndex, final ClassAccessFactory classAccessFactory, final Class<? extends Annotation>[] extraAnnotations) {
-        if (clazz.getDeclaredAnnotation(CheckSuperclasses.class) == null) return;
+    private static void loadSuperClassSections(final ConfigType configType, final Class<?> clazz, final Object instance, final ClassAccess classAccess, final SectionIndex sectionIndex, final ClassAccessFactory classAccessFactory, final Class<? extends Annotation>[] extraAnnotations) {
+        if (classAccess.getAnnotation(CheckSuperclass.class) == null) return;
+        boolean isOptConfig = classAccess.getAnnotation(OptConfig.class) != null;
+        boolean isSection = classAccess.getAnnotation(Section.class) != null;
+        if (!isOptConfig && !isSection) return;
+
         Class<?> superClass = clazz.getSuperclass();
-        while (superClass != null) {
-            ClassAccess superClassAccess = classAccessFactory.create(superClass);
-            if (classAccess.getAnnotation(OptConfig.class) != null && superClassAccess.getAnnotation(OptConfig.class) != null
-                    || classAccess.getAnnotation(Section.class) != null && superClassAccess.getAnnotation(Section.class) != null) {
-                //Load the section index of the super class but without any in memory fields (config version)
-                SectionIndex superClassIndex = indexClass(configType, superClass, instance, superClassAccess, classAccessFactory, extraAnnotations, true);
-                sectionIndex.merge(superClassIndex);
-                break;
-            } else {
-                superClass = superClass.getSuperclass();
-            }
+        ClassAccess superClassAccess = classAccessFactory.create(superClass);
+        if (isOptConfig && superClassAccess.getAnnotation(OptConfig.class) != null
+                || isSection && superClassAccess.getAnnotation(Section.class) != null) {
+            //Load the section index of the super class but without any in memory fields (config version)
+            SectionIndex superClassIndex = indexClass(configType, superClass, instance, superClassAccess, classAccessFactory, extraAnnotations, true);
+            sectionIndex.merge(superClassIndex);
         }
     }
 
