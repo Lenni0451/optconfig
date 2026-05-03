@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.cli;
 
+import net.lenni0451.optconfig.utils.HelpTable;
 import net.lenni0451.optconfig.utils.generics.Generics;
 import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.nodes.*;
@@ -18,20 +19,19 @@ public class CLIHelpBuilder {
         if (helpOptions.sort()) {
             options.sort((o1, o2) -> o1.name().compareToIgnoreCase(o2.name()));
         }
-        List<HelpEntry> helpEntries = new ArrayList<>();
+
+        HelpTable helpTable = new HelpTable(helpOptions);
         for (CLIOption option : options) {
-            String name = option.formatNameAndAliases();
+            List<String> names = option.getNames();
             String[] description = option.configOption().getDescription();
             String[] dependencies = option.configOption().getDependencies();
             String defaultValue = getDefaultValueString(option.node(), helpOptions.quoteStrings());
 
             Class<?> fieldType = option.configOption().getFieldAccess().getType();
-            HelpEntry entry;
+            String typeStr = "";
             if (fieldType == boolean.class || fieldType == Boolean.class) {
                 if (helpOptions.showBooleanType()) {
-                    entry = new HelpEntry(name + " [" + fieldType.getSimpleName() + "]", option.required());
-                } else {
-                    entry = new HelpEntry(name, option.required());
+                    typeStr = "[" + fieldType.getSimpleName() + "]";
                 }
             } else if (option.node() instanceof SequenceNode sequence) {
                 String entryType = fieldType.getSimpleName();
@@ -47,7 +47,7 @@ public class CLIHelpBuilder {
                         entryType = scalarEntry.getTag().getClassName();
                     }
                 }
-                entry = new HelpEntry(name + " <" + entryType + ">...", option.required());
+                typeStr = "<" + entryType + ">...";
             } else if (option.node() instanceof MappingNode mapping) {
                 String keyType = "key";
                 String valueType = "value";
@@ -70,22 +70,25 @@ public class CLIHelpBuilder {
                         valueType = scalarNode.getTag().getClassName();
                     }
                 }
-                entry = new HelpEntry(name + " <" + keyType + ">=<" + valueType + ">", option.required());
+                typeStr = "<" + keyType + ">=<" + valueType + ">";
             } else {
-                entry = new HelpEntry(name + " <" + fieldType.getSimpleName() + ">", option.required());
+                typeStr = "<" + fieldType.getSimpleName() + ">";
             }
+
+            List<String> entryDescription = new ArrayList<>();
             if (helpOptions.showDescription()) {
-                Collections.addAll(entry.description, description);
+                Collections.addAll(entryDescription, description);
             }
             if (helpOptions.showDepends() && dependencies.length > 0) {
-                entry.description.add("Depends on: " + String.join(", ", dependencies));
+                entryDescription.add("Depends on: " + String.join(", ", dependencies));
             }
             if (helpOptions.showDefaults() && defaultValue != null && !option.required()) {
-                entry.description.add("Default: " + defaultValue);
+                entryDescription.add("Default: " + defaultValue);
             }
-            helpEntries.add(entry);
+
+            helpTable.addRow(names, typeStr, option.required(), entryDescription);
         }
-        return toString(helpEntries, helpOptions);
+        return helpTable.build();
     }
 
     @Nullable
@@ -129,78 +132,6 @@ public class CLIHelpBuilder {
             }
             case anchor -> null;
         };
-    }
-
-    private static String toString(final List<HelpEntry> helpEntries, final HelpOptions helpOptions) {
-        int longestOption = Math.max(
-                helpEntries.stream()
-                        .map(entry -> ((helpOptions.showRequired() && entry.required) ? " (required)" : "") + entry.name())
-                        .mapToInt(String::length)
-                        .max()
-                        .orElse(0),
-                helpOptions.optionTitle().length()
-        );
-        int longestDescription = helpEntries.stream()
-                .flatMap(e -> e.description.stream())
-                .mapToInt(String::length)
-                .max()
-                .orElse(0);
-        if (longestDescription > 0) {
-            longestDescription = Math.max(longestDescription, helpOptions.descriptionTitle().length());
-        }
-        String optionHeaderPadding = " ".repeat(longestOption - helpOptions.optionTitle().length() + helpOptions.columnPadding());
-        StringBuilder out = new StringBuilder()
-                .append(helpOptions.optionTitle());
-        if (longestDescription > 0) {
-            out.append(optionHeaderPadding)
-                    .append(helpOptions.descriptionTitle());
-        }
-        out.append("\n");
-        switch (helpOptions.headerSeparator()) {
-            case NONE -> {
-            }
-            case HEADER_WIDTH -> {
-                out.append(String.valueOf(helpOptions.separatorChar()).repeat(helpOptions.optionTitle().length()));
-                if (longestDescription > 0) {
-                    out.append(optionHeaderPadding)
-                            .append(String.valueOf(helpOptions.separatorChar()).repeat(helpOptions.descriptionTitle().length()));
-                }
-                out.append("\n");
-            }
-            case COLUMN_WIDTH -> {
-                out.append(String.valueOf(helpOptions.separatorChar()).repeat(longestOption));
-                if (longestDescription > 0) {
-                    out.append(" ".repeat(helpOptions.columnPadding()))
-                            .append(String.valueOf(helpOptions.separatorChar()).repeat(longestDescription));
-                }
-                out.append("\n");
-            }
-            default -> throw new IllegalStateException("Unexpected header separator: " + helpOptions.headerSeparator());
-        }
-        for (HelpEntry entry : helpEntries) {
-            out.append(entry.name);
-            if (helpOptions.showRequired() && entry.required) {
-                out.append(" (required)");
-            }
-            if (!entry.description.isEmpty()) {
-                out.append(" ".repeat(longestOption - (entry.required ? 11 : 0) - entry.name.length() + helpOptions.columnPadding()));
-                for (int i = 0; i < entry.description.size(); i++) {
-                    if (i != 0) {
-                        out.append("\n").append(" ".repeat(longestOption + helpOptions.columnPadding()));
-                    }
-                    out.append(entry.description.get(i));
-                }
-            }
-            out.append("\n");
-        }
-        return out.toString();
-    }
-
-
-    private record HelpEntry(String name, List<String> description, boolean required) {
-        public HelpEntry(final String name, final boolean required) {
-            this(name, new ArrayList<>(), required);
-        }
     }
 
 }
