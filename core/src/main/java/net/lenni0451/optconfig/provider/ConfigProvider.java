@@ -26,13 +26,33 @@ public interface ConfigProvider {
     }
 
     /**
+     * Create a new read only {@link PathConfigProvider} with the given file.
+     *
+     * @param file The file to the config file
+     * @return The created {@link PathConfigProvider}
+     */
+    static PathConfigProvider readOnlyFile(final File file) {
+        return readOnlyPath(file.toPath());
+    }
+
+    /**
      * Create a new {@link PathConfigProvider} with the given path.
      *
      * @param path The path to the config file
      * @return The created {@link PathConfigProvider}
      */
     static PathConfigProvider path(final Path path) {
-        return new PathConfigProvider(path);
+        return new PathConfigProvider(path, false);
+    }
+
+    /**
+     * Create a new read only {@link PathConfigProvider} with the given path.
+     *
+     * @param path The path to the config file
+     * @return The created {@link PathConfigProvider}
+     */
+    static PathConfigProvider readOnlyPath(final Path path) {
+        return new PathConfigProvider(path, true);
     }
 
     /**
