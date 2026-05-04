@@ -37,7 +37,7 @@ public class CLIConfigSerializer {
                 } finally {
                     path.pop();
                 }
-            } else {
+            } else if (!option.isSynthetic()) {
                 ConfigTypeSerializer<?> typeSerializer = option.createTypeSerializer(configLoader);
                 Object deserializedValue = optionValue;
                 if (option.getValidator() != null) {

@@ -59,8 +59,9 @@ public class ConfigOption {
     @Nullable
     private final MethodAccess validator;
     private final String[] dependencies;
+    private final boolean synthetic;
 
-    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, final Annotation[] extraAnnotations, final Map<String, MethodAccess> validatorMethods, @Nullable final ClassAccess classAccess) {
+    public ConfigOption(final FieldAccess fieldAccess, final Option option, @Nullable final Description description, @Nullable final NotReloadable notReloadable, @Nullable final TypeSerializer typeSerializer, @Nullable final Hidden hidden, @Nullable Order order, final Annotation[] extraAnnotations, final Map<String, MethodAccess> validatorMethods, @Nullable final ClassAccess classAccess, final boolean synthetic) {
         this.fieldAccess = fieldAccess;
         this.name = option.value().isEmpty() ? fieldAccess.getName() : option.value();
         this.description = getDescription(this.name, description, classAccess);
@@ -71,6 +72,7 @@ public class ConfigOption {
         this.extraAnnotations = extraAnnotations;
         this.validator = validatorMethods.remove(this.getName());
         this.dependencies = option.dependencies();
+        this.synthetic = synthetic;
     }
 
     public <C, T> ConfigTypeSerializer<T> createTypeSerializer(final ConfigLoader<C> configLoader) {

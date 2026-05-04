@@ -138,7 +138,7 @@ public class ClassIndexer {
             for (int i = 0; i < extraAnnotations.length; i++) {
                 extra[i] = field.getAnnotation(extraAnnotations[i]);
             }
-            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, extra, validatorMethods, classAccess);
+            ConfigOption configOption = new ConfigOption(field, option, description, notReloadable, typeSerializer, hidden, order, extra, validatorMethods, classAccess, false);
             if (configOption.getName().equals(OptConfig.CONFIG_VERSION_OPTION)) {
                 throw new IllegalStateException("The option name '" + OptConfig.CONFIG_VERSION_OPTION + "' is reserved for the config version");
             }
@@ -181,7 +181,8 @@ public class ClassIndexer {
                         null,
                         NO_EXTRA_ANNOTATIONS,
                         Collections.emptyMap(),
-                        null
+                        null,
+                        true
                 );
                 sectionIndex.addOption(subSectionOption);
                 sectionIndex.addSubSection(subSectionOption, indexClass(sectionIndex.getConfigType(), innerClass.getClazz(), null, classAccessFactory, extraAnnotations));
@@ -225,7 +226,8 @@ public class ClassIndexer {
                         null,
                         NO_EXTRA_ANNOTATIONS,
                         Collections.emptyMap(),
-                        null
+                        null,
+                        true
                 ));
             }
         }
