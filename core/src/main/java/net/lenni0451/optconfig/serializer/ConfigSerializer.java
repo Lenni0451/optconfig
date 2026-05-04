@@ -51,7 +51,7 @@ public class ConfigSerializer {
                     option.getFieldAccess().setValue(sectionInstance, deserializedValue);
                 }
             } catch (Throwable t) {
-                if (!configLoader.getConfigOptions().isResetInvalidOptions()) throw t;
+                configLoader.getConfigOptions().getDeserializerExceptionHandler().tryHandle(option.getName(), t);
                 //Add the invalid key to the diff
                 //The merger will replace the invalid value with the default value
                 configDiff.getInvalidKeys().add(option.getName());

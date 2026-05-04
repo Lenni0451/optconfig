@@ -7,6 +7,7 @@ import net.lenni0451.optconfig.access.ClassAccessFactory;
 import net.lenni0451.optconfig.access.impl.reflection.ReflectionClassAccess;
 import net.lenni0451.optconfig.access.types.ClassAccess;
 import net.lenni0451.optconfig.annotations.NotReloadable;
+import net.lenni0451.optconfig.utils.OptionExceptionHandler;
 
 import java.util.function.BiPredicate;
 
@@ -19,10 +20,12 @@ import java.util.function.BiPredicate;
 public class ConfigOptions {
 
     /**
-     * Should invalid options be reset to their default value.<br>
-     * Default: {@code false}
+     * Handler for exceptions thrown during option deserialization.<br>
+     * Default: {@code (o, t) -> throw t}
      */
-    private boolean resetInvalidOptions = false;
+    private OptionExceptionHandler deserializerExceptionHandler = (option, t) -> {
+        throw t;
+    };
     /**
      * Should unknown options be removed from the config.<br>
      * Default: {@code true}
@@ -86,5 +89,21 @@ public class ConfigOptions {
         if (o1 instanceof Double && o2 instanceof Double) return (double) o1 == (double) o2;
         return o1 == o2;
     };
+
+    /**
+     * Should invalid options be reset to their default value.<br>
+     * This replaces {@link #deserializerExceptionHandler} when called.<br>
+     * Default: {@code false}
+     */
+    public ConfigOptions setResetInvalidOptions(final boolean resetInvalidOptions) {
+        if (resetInvalidOptions) {
+            this.deserializerExceptionHandler = (option, t) -> {};
+        } else {
+            this.deserializerExceptionHandler = (option, t) -> {
+                throw t;
+            };
+        }
+        return this;
+    }
 
 }
