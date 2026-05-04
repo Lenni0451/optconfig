@@ -10,7 +10,6 @@ import net.lenni0451.optconfig.cli.CLIOption;
 import net.lenni0451.optconfig.cli.CLIParser;
 import net.lenni0451.optconfig.cli.model.HelpOptions;
 import net.lenni0451.optconfig.cli.model.LoadedOptions;
-import net.lenni0451.optconfig.cli.model.UnknownOption;
 import net.lenni0451.optconfig.exceptions.CLIDuplicateOptionException;
 import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
 import net.lenni0451.optconfig.exceptions.CLIMissingOptionException;
@@ -100,9 +99,9 @@ public class CLIConfigLoader<C> {
      */
     public LoadedOptions loadCLIOptions(final String[] args, final boolean setNotReloadableOptions) throws CLIIncompatibleOptionException, CLIParserException, CLIMissingOptionException {
         Map<String, Object> values = new HashMap<>();
-        List<UnknownOption> unknownOptions = CLIParser.parse(this.context.getConfigLoader().getYaml(), this.loadOptions(), args, values);
+        LoadedOptions loadedOptions = CLIParser.parse(this.context.getConfigLoader().getYaml(), this.loadOptions(), args, values);
         ConfigSerializer.deserializeSection(this.context.getConfigLoader(), this.context.getConfigInstance(), this.configIndex, this.context.getConfigInstance(), values, !setNotReloadableOptions, null);
-        return new LoadedOptions(values.keySet(), unknownOptions);
+        return loadedOptions;
     }
 
     /**

@@ -1,5 +1,6 @@
 package net.lenni0451.optconfig.cli;
 
+import net.lenni0451.optconfig.cli.model.LoadedOptions;
 import net.lenni0451.optconfig.cli.model.UnknownOption;
 import net.lenni0451.optconfig.exceptions.CLIMissingOptionException;
 import net.lenni0451.optconfig.exceptions.CLIMissingOptionValueException;
@@ -13,11 +14,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 public class CLIParser {
 
-    public static List<UnknownOption> parse(final Yaml yaml, final List<CLIOption> cliOptions, final String[] args, final Map<String, Object> values) throws CLIParserException {
+    public static LoadedOptions parse(final Yaml yaml, final List<CLIOption> cliOptions, final String[] args, final Map<String, Object> values) throws CLIParserException {
         Map<String, List<String>> passedValues = new LinkedHashMap<>();
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
@@ -108,9 +110,14 @@ public class CLIParser {
             }
             targetMap.put(entry.getKey().configOption().getName(), value);
         }
-        return unknownOptions.entrySet().stream()
-                .map(e -> new UnknownOption(e.getKey(), e.getValue().toArray(new String[0])))
-                .toList();
+        return new LoadedOptions(
+                parsedOptions.keySet().stream()
+                        .map(CLIOption::name)
+                        .collect(Collectors.toSet()),
+                unknownOptions.entrySet().stream()
+                        .map(e -> new UnknownOption(e.getKey(), e.getValue().toArray(new String[0])))
+                        .toList()
+        );
     }
 
 }
