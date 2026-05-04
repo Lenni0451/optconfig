@@ -62,6 +62,12 @@ public class ConfigSerializer {
 
     private static void verifyFieldType(final ConfigOption option, final Object deserializedValue) {
         Class<?> expectedType = option.getFieldAccess().getType();
+        if (deserializedValue == null) {
+            if (expectedType.isPrimitive()) {
+                throw new InvalidSerializedObjectException(expectedType, null);
+            }
+            return;
+        }
         if (expectedType == boolean.class) expectedType = Boolean.class;
         else if (expectedType == byte.class) expectedType = Byte.class;
         else if (expectedType == short.class) expectedType = Short.class;
