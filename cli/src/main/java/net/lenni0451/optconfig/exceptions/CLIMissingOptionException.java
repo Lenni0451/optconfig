@@ -15,10 +15,9 @@ public class CLIMissingOptionException extends RuntimeException {
     private final List<String> aliases;
 
     public CLIMissingOptionException(final CLIOption option) {
-        super("Missing required option " + String.join(", ", option.getNames()));
-        List<String> names = option.getNames();
-        this.option = names.get(0);
-        this.aliases = names.subList(1, names.size());
+        super("Missing required option '" + option.name() + "' (" + String.join(", ", option.getNames()) + ")");
+        this.option = option.name();
+        this.aliases = option.getNames();
     }
 
 }

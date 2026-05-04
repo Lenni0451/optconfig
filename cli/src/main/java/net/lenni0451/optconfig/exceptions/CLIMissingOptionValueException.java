@@ -15,10 +15,9 @@ public class CLIMissingOptionValueException extends RuntimeException {
     private final List<String> aliases;
 
     public CLIMissingOptionValueException(final CLIOption option) {
-        super("Option " + String.join(", ", option.getNames()) + " is missing a value");
-        List<String> names = option.getNames();
-        this.option = names.get(0);
-        this.aliases = names.subList(1, names.size());
+        super("Option '" + option.name() + "' (" + String.join(", ", option.getNames()) + ") is missing a value");
+        this.option = option.name();
+        this.aliases = option.getNames();
     }
 
 }
