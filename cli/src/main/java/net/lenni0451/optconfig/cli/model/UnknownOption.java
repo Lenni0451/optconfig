@@ -21,10 +21,10 @@ public record UnknownOption(String name, String[] values) {
 
     @Override
     public @NotNull String toString() {
-        return "UnknownOption{" +
-                "name='" + this.name + '\'' +
-                ", values=" + Arrays.toString(this.values) +
-                '}';
+        return "UnknownOption{"
+                + "name='" + this.name + '\''
+                + ", values=" + Arrays.toString(this.values)
+                + '}';
     }
 
 }
