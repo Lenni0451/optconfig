@@ -22,6 +22,7 @@ A java library for parsing yaml config files with support for comments and defau
 - Custom type serializers
 - Validators for options
 - Option dependencies for validators and type serializers
+- Parsing CLI arguments to update the config values
 
 ## Usage
 ### Loading a config
@@ -32,7 +33,7 @@ ConfigLoader<TestConfig> loader = new ConfigLoader<>(TestConfig.class);
 ---
 After that you can load the config from a file.
 ```java
-ConfigContext<TestConfig> configContext = loader.load(ConfigProvider.path(FileSystems.getDefault().getPath("test.yml")));
+ConfigContext<TestConfig> configContext = loader.load(ConfigProvider.file(new File("test.yml")));
 ```
 The returned `ConfigContext` object contains the instance of the loaded config (if the config is not static) and provides a `reload` and `save` method.
 ```java
@@ -46,8 +47,9 @@ Some default providers can be created using the static methods of the `ConfigPro
 ```java
 ConfigProvider#file(final File file);
 ConfigProvider#path(final Path path);
-ConfigProvider#memory(final String content, final Consumer<String> contentConsumer);
-ConfigProvider#memory(final Supplier<String> contentSupplier, final Consumer<String> contentConsumer);
+ConfigProvider#memory(final byte[] content, final Consumer<byte[]> contentConsumer);
+ConfigProvider#memory(final Supplier<byte[]> contentSupplier, final Consumer<byte[]> contentConsumer);
+ConfigProvider#empty();
 ```
 
 ### Settings
@@ -66,35 +68,33 @@ Check out the `ConfigOptions` class for all available options. All options are d
 When wanting to use custom types in your config, you need to create a type serializer for that specific type.\
 Here is an example of a type serializer for the `Month` enum:
 ```java
+import net.lenni0451.optconfig.exceptions.InvalidSerializedObjectException;
 import net.lenni0451.optconfig.serializer.ConfigTypeSerializer;
+import net.lenni0451.optconfig.serializer.info.DeserializerInfo;
+import net.lenni0451.optconfig.serializer.info.SerializerInfo;
 
 import java.time.Month;
 import java.util.Locale;
 
-public class TestMonthSerializer extends ConfigTypeSerializer<TestConfig, Month> {
+public class TestMonthSerializer implements ConfigTypeSerializer<Month> {
 
-    //The required default constructor taking the config instance as parameter
-    public TestMonthSerializer(final TestConfig config) {
-        super(config);
+  //Deserialize the object from a value in the config
+  //The type may vary depending on the type of the option
+  @Override
+  public Month deserialize(final DeserializerInfo<Month> info) {
+    //Make sure to handle invalid values
+    if (!(info.serializedValue() instanceof String)) {
+      //If the type is not usable, throw an exception (e.g. InvalidSerializedObjectException)
+      throw new InvalidSerializedObjectException(String.class, info.serializedValue().getClass());
     }
+    return Month.valueOf(((String) info.value()).toUpperCase(Locale.ROOT));
+  }
 
-    //Deserialize the object from a value in the config
-    //The type may vary depending on the type of the option
-    @Override
-    public Month deserialize(Class<Month> typeClass, Object serializedObject) {
-        //this.config is the instance of the config class
-        //You can access other options using it. Setting dependencies is recommended to ensure the correct order of loading.
-
-        //Make sure to handle invalid values
-        //If the type is not usable, throw an exception (e.g. InvalidSerializedObjectException)
-        return Month.valueOf(((String) serializedObject).toUpperCase(Locale.ROOT));
-    }
-
-    @Override
-    public Object serialize(Month object) {
-        //Serialize the object to a yaml compatible object
-        return object.name().toLowerCase(Locale.ROOT);
-    }
+  @Override
+  public Object serialize(final SerializerInfo<Month> info) {
+    //Serialize the object to a yaml compatible object
+    return info.value().name().toLowerCase(Locale.ROOT);
+  }
 
 }
 ```
@@ -222,15 +222,16 @@ repositories {
 }
 
 dependencies {
-    implementation "net.lenni0451:optconfig:x.x.x"
+    implementation "net.lenni0451.optconfig:core:x.x.x"
+    implementation "net.lenni0451.optconfig:cli:x.x.x" //Optional module for parsing CLI arguments to update the config values
 }
 ```
 
 ### Maven
 ```xml
 <dependency>
-  <groupId>net.lenni0451</groupId>
-  <artifactId>optconfig</artifactId>
+  <groupId>net.lenni0451.optconfig</groupId>
+  <artifactId>core</artifactId>
   <version>x.x.x</version>
 </dependency>
 ```
