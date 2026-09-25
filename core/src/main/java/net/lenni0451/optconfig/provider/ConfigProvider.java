@@ -79,7 +79,7 @@ public interface ConfigProvider {
 
     /**
      * Create a new {@link EmptyConfigProvider}.<br>
-     * This provider always returns an empty string and does nothing on save.<br>
+     * This provider always returns an empty byte array and does nothing on save.<br>
      * Can be used if the config is only used for CLI purposes.
      *
      * @return The created {@link EmptyConfigProvider}

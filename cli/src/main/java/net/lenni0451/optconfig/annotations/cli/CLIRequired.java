@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marker annotation used to make this options required in the CLI.
+ * Marker annotation used to make this option required in the CLI.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

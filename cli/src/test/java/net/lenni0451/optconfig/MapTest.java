@@ -3,6 +3,7 @@ package net.lenni0451.optconfig;
 import net.lenni0451.optconfig.annotations.OptConfig;
 import net.lenni0451.optconfig.annotations.Option;
 import net.lenni0451.optconfig.annotations.Section;
+import net.lenni0451.optconfig.exceptions.CLIIncompatibleOptionException;
 import net.lenni0451.optconfig.provider.ConfigProvider;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class MapTest {
 
@@ -39,6 +41,14 @@ class MapTest {
         assertEquals(Map.of("key4", "val8", "key5", "val9"), context.getConfigInstance().subSection.d);
     }
 
+    @Test
+    void testIncompatibleMap() throws Throwable {
+        ConfigLoader<IncompatibleConfig> loader = new ConfigLoader<>(IncompatibleConfig.class);
+        ConfigContext<IncompatibleConfig> context = loader.load(ConfigProvider.empty());
+        CLIConfigLoader<IncompatibleConfig> cliLoader = new CLIConfigLoader<>(context);
+        assertThrows(CLIIncompatibleOptionException.class, cliLoader::buildCLIHelp);
+    }
+
 
     @OptConfig
     public static class Config {
@@ -61,5 +71,10 @@ class MapTest {
         }
     }
 
+    @OptConfig
+    public static class IncompatibleConfig {
+        @Option("map")
+        public Map<String, Map<String, String>> map = Map.of("key", new HashMap<>());
+    }
 
 }

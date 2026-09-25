@@ -1,10 +1,12 @@
 package net.lenni0451.optconfig.cli;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.yaml.snakeyaml.nodes.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@ApiStatus.Internal
 public class CLIEmitter {
 
     public static String[] emit(final List<CLIOption> options) {

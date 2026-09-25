@@ -94,6 +94,8 @@ public class ConfigOptions {
      * Should invalid options be reset to their default value.<br>
      * This replaces {@link #deserializerExceptionHandler} when called.<br>
      * Default: {@code false}
+     *
+     * @return This {@link ConfigOptions} instance
      */
     public ConfigOptions setResetInvalidOptions(final boolean resetInvalidOptions) {
         if (resetInvalidOptions) {
@@ -103,6 +105,33 @@ public class ConfigOptions {
                 throw t;
             };
         }
+        return this;
+    }
+
+    /**
+     * The comment to add to options and sections that are marked with {@link NotReloadable}.<br>
+     * Set to {@code null} or empty to disable.<br>
+     * Default: {@code "This option is not reloadable."}
+     *
+     * @param notReloadableComment The comment to add
+     * @return This {@link ConfigOptions} instance
+     */
+    public ConfigOptions setNotReloadableComment(final String... notReloadableComment) {
+        this.notReloadableComment = notReloadableComment;
+        return this;
+    }
+
+    /**
+     * The comment to add to sections that are marked with {@link NotReloadable}.<br>
+     * The comment from {@link #notReloadableComment} will be added above this comment.<br>
+     * Set to {@code null} or empty to disable.<br>
+     * Default: {@code "This applies to all options in this section."}
+     *
+     * @param notReloadableSectionComment The comment to add
+     * @return This {@link ConfigOptions} instance
+     */
+    public ConfigOptions setNotReloadableSectionComment(final String... notReloadableSectionComment) {
+        this.notReloadableSectionComment = notReloadableSectionComment;
         return this;
     }
 

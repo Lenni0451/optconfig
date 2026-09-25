@@ -28,7 +28,7 @@ import lombok.experimental.WithBy;
  * @param descriptionTitle The title of the description/default/dependencies column.<br>
  *                         By default, the title is "Description".
  * @param headerSeparator  How to separate the header from the rest of the table.<br>
- *                         The default, {@link HeaderSeparator#COLUMN_WIDTH} is used.
+ *                         By default, {@link HeaderSeparator#COLUMN_WIDTH} is used.
  * @param separatorChar    The character to use for the header separator.<br>
  *                         By default, the character is '-'.
  * @param columnPadding    The number of spaces to pad between columns.<br>

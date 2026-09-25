@@ -137,11 +137,12 @@ public class YamlUtils {
     }
 
     public static void appendComment(final Node node, final int commentSpacing, final String... comments) {
-        if (comments.length == 0) return;
+        if (comments == null || comments.length == 0) return;
         List<CommentLine> blockComments = makeCommentsMutable(node);
         String commentPrefix = "";
         for (int i = 0; i < commentSpacing; i++) commentPrefix += " ";
         for (String comment : comments) {
+            if (comment == null) continue;
             if (comment.equals("\n")) {
                 blockComments.add(new CommentLine(null, null, "\n", CommentType.BLANK_LINE));
             } else {

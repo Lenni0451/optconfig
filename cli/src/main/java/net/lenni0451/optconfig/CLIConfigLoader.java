@@ -61,6 +61,25 @@ public class CLIConfigLoader<C> {
     }
 
     /**
+     * Print CLI help to {@code System.out} using {@link HelpOptions#DEFAULT}.
+     *
+     * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
+     */
+    public void printCLIHelp() throws CLIIncompatibleOptionException {
+        this.printCLIHelp(System.out, HelpOptions.DEFAULT);
+    }
+
+    /**
+     * Print CLI help to the given Appendable (e.g. {@code System.out}) using {@link HelpOptions#DEFAULT}.
+     *
+     * @param out The Appendable to print the help to
+     * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
+     */
+    public void printCLIHelp(final Appendable out) throws CLIIncompatibleOptionException {
+        this.printCLIHelp(out, HelpOptions.DEFAULT);
+    }
+
+    /**
      * Print CLI help to the given Appendable (e.g. {@code System.out}).
      *
      * @param out     The Appendable to print the help to
@@ -74,6 +93,16 @@ public class CLIConfigLoader<C> {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    /**
+     * Build CLI help using {@link HelpOptions#DEFAULT}.
+     *
+     * @return The built help string
+     * @throws CLIIncompatibleOptionException If an option is incompatible with the CLI
+     */
+    public String buildCLIHelp() throws CLIIncompatibleOptionException {
+        return this.buildCLIHelp(HelpOptions.DEFAULT);
     }
 
     /**

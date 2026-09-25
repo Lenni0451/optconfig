@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * The context of a loaded config instance.<br>
- * Allows reloading and saving the config as well as loading and printing CLI options.
+ * Allows reloading and saving the config.
  *
  * @param <C> The config class type
  */
@@ -74,14 +74,18 @@ public class ConfigContext<C> {
      */
     public void save() throws IOException, IllegalAccessException {
         MappingNode serializedSection = ConfigSerializer.serializeSection(this.configLoader, this.defaultValues, this.configInstance, this.configIndex, this.configInstance);
-        if (this.configLoader.getConfigOptions().isRewriteConfig()) {
-            //If the config should be rewritten, just save the serialized section
+        if (this.configLoader.getConfigOptions().isRewriteConfig() || !this.configProvider.exists()) {
+            //If the config should be rewritten or the config does not exist yet, just save the serialized section
             this.configLoader.save(serializedSection, this.configProvider);
         } else {
             //If the config should not be rewritten, copy over comments and formatting
             MappingNode readNode = (MappingNode) this.configLoader.getYaml().compose(new InputStreamReader(new ByteArrayInputStream(this.configProvider.load())));
-            YamlUtils.copyValues(serializedSection, readNode);
-            this.configLoader.save(readNode, this.configProvider);
+            if (readNode != null) {
+                YamlUtils.copyValues(serializedSection, readNode);
+                this.configLoader.save(readNode, this.configProvider);
+            } else {
+                this.configLoader.save(serializedSection, this.configProvider);
+            }
         }
     }
 

@@ -54,7 +54,7 @@ public class ConfigLoader<C> {
     }
 
     /**
-     * Load an instanced config from the given path.<br>
+     * Load an instanced config from the given config provider.<br>
      * A new instance of the config class will be created and returned.<br>
      * The config class must have an empty constructor.
      *
@@ -67,7 +67,7 @@ public class ConfigLoader<C> {
     }
 
     /**
-     * Load a static config from the given path.<br>
+     * Load an instanced config with an existing instance from the given config provider.<br>
      * The given instance will be used to store the values of the config.
      *
      * @param config         The instance to store the values
@@ -83,7 +83,7 @@ public class ConfigLoader<C> {
     }
 
     /**
-     * Load a static config from the given path.
+     * Load a static config from the given config provider.
      *
      * @param configProvider The config provider for loading and saving the config
      * @return The config context

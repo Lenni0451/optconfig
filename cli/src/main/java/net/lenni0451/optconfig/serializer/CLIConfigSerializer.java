@@ -53,7 +53,7 @@ public class CLIConfigSerializer {
                     }
                 } else if (valueNode instanceof MappingNode mappingNode) {
                     for (NodeTuple nodeTuple : mappingNode.getValue()) {
-                        if (!(nodeTuple.getKeyNode() instanceof ScalarNode) && !(nodeTuple.getValueNode() instanceof ScalarNode)) {
+                        if (!(nodeTuple.getKeyNode() instanceof ScalarNode) || !(nodeTuple.getValueNode() instanceof ScalarNode)) {
                             throw CLIIncompatibleOptionException.invalidMap(path, option.getName());
                         }
                     }

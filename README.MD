@@ -10,6 +10,10 @@ A java library for parsing yaml config files with support for comments and defau
     - [Type serializers](#type-serializers)
     - [Migrators](#migrators)
     - [Config class](#config-class)
+    - [CLI arguments](#cli-arguments)
+  - [Including in your project](#including-in-your-project)
+    - [Gradle](#gradle)
+    - [Maven](#maven)
 
 ## Features
 - Loading and saving of config files from various sources (File, Path, Memory)
@@ -46,7 +50,9 @@ The `ConfigProvider` class gives you the ability to choose where the config is l
 Some default providers can be created using the static methods of the `ConfigProvider` class.
 ```java
 ConfigProvider#file(final File file);
+ConfigProvider#readOnlyFile(final File file);
 ConfigProvider#path(final Path path);
+ConfigProvider#readOnlyPath(final Path path);
 ConfigProvider#memory(final byte[] content, final Consumer<byte[]> contentConsumer);
 ConfigProvider#memory(final Supplier<byte[]> contentSupplier, final Consumer<byte[]> contentConsumer);
 ConfigProvider#empty();
@@ -56,10 +62,10 @@ ConfigProvider#empty();
 The `ConfigLoader` has some settings that can be changed to modify the behavior of the loader.\
 Here are some example options, but there are more available.
 ```java
-loader.getConfigOptions().setResetInvalidOptions(true);   //Reset options with invalid values
-loader.getConfigOptions().setSpaceBetweenOptions(true);   //Add a newline between options
-loader.getConfigOptions().setRewriteConfig(true);         //Rewrite the config file on load (resetting user comments and formatting)
-loader.getConfigOptions().setNotReloadableComment(false); //Add a comment to options that are not reloadable
+loader.getConfigOptions().setResetInvalidOptions(true);               //Reset options with invalid values
+loader.getConfigOptions().setSpaceBetweenOptions(true);               //Add a newline between options
+loader.getConfigOptions().setRewriteConfig(true);                     //Rewrite the config file on load (resetting user comments and formatting)
+loader.getConfigOptions().setNotReloadableComment("Not reloadable");  //Change or disable (using null / empty) the comment for not reloadable options
 ...
 ```
 Check out the `ConfigOptions` class for all available options. All options are documented using javadoc.
@@ -83,9 +89,9 @@ public class TestMonthSerializer implements ConfigTypeSerializer<Month> {
   @Override
   public Month deserialize(final DeserializerInfo<Month> info) {
     //Make sure to handle invalid values
-    if (!(info.serializedValue() instanceof String)) {
+    if (!(info.value() instanceof String)) {
       //If the type is not usable, throw an exception (e.g. InvalidSerializedObjectException)
-      throw new InvalidSerializedObjectException(String.class, info.serializedValue().getClass());
+      throw new InvalidSerializedObjectException(String.class, info.value().getClass());
     }
     return Month.valueOf(((String) info.value()).toUpperCase(Locale.ROOT));
   }
@@ -124,7 +130,7 @@ public class TestMigrator implements ConfigMigrator {
 ```
 The migrator takes the current version of the config and a map of all loaded values.\
 The map contains a name-value pair for each option in the config.\
-Section are in the map as a nested map with the section name as key.\
+Sections are in the map as a nested map with the section name as key.\
 When the migrator is done, the map is used to update the config object.
 
 ### Config class
@@ -143,7 +149,7 @@ import java.time.Month;
 }) //The header will be appended to the top of the config file
 @Migrator(from = 1, to = 2, migrator = ConfigMigrator.class) //Migrator for version 1 to 2
 @Migrator(from = 2, to = 3, migrator = ConfigMigrator.class) //Migrator for version 2 to 3
-@CheckSuperclasses //Check superclasses for config options (only useful if extending another config class)
+@CheckSuperclass //Check superclasses for config options (only useful if extending another config class)
 public class TestConfig {
 
     public ConfigContext<TestConfig> context; //This field is automatically set by the ConfigLoader
@@ -212,6 +218,24 @@ section:
   
   test: Test String 3
 ```
+
+### CLI arguments
+The `cli` module allows you to parse command-line arguments to automatically update config values and format help tables.
+```java
+//Create a CLIConfigLoader from your ConfigContext
+CLIConfigLoader<TestConfig> cliLoader = new CLIConfigLoader<>(configContext);
+
+//Print generated CLI help to System.out
+cliLoader.printCLIHelp();
+
+//Or parse arguments to update config values
+cliLoader.loadCLIOptions(args);
+```
+Options can be configured with CLI-specific annotations:
+- `@CLIName`: Define a custom CLI argument name and optionally set `omitSection = true` to flatten nested section names.
+- `@CLIAliases`: Add one or more alias names (e.g. short flags like `{"-h", "--help"}`) and optionally hide them from help output with `hidden = true`.
+- `@CLIRequired`: Mark an option as mandatory on the command line (throws `CLIMissingOptionException` if missing).
+- `@CLIIgnore`: Exclude an option from being exposed or modified via the CLI.
 
 ## Including in your project
 Check out [maven central](https://mvnrepository.com/artifact/net.lenni0451/optconfig) for the latest version.

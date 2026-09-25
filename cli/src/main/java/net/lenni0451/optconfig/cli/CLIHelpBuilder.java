@@ -57,11 +57,11 @@ public class CLIHelpBuilder {
 
                     Type keyGenericType = Generics.getMapKeyGenericType(fieldGenericType);
                     Class<?> keyGenericClass = Generics.resolveTypeToClass(keyGenericType);
-                    if (keyGenericType != null) keyType = keyGenericClass.getSimpleName();
+                    if (keyGenericClass != null) keyType = keyGenericClass.getSimpleName();
 
                     Type valueGenericType = Generics.getMapValueGenericType(fieldGenericType);
                     Class<?> valueGenericClass = Generics.resolveTypeToClass(valueGenericType);
-                    if (valueGenericType != null) valueType = valueGenericClass.getSimpleName();
+                    if (valueGenericClass != null) valueType = valueGenericClass.getSimpleName();
                 } else if (!mapping.getValue().isEmpty()) {
                     NodeTuple tuple = mapping.getValue().get(0);
                     if (tuple.getKeyNode() instanceof ScalarNode scalarNode) {
