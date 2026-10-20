@@ -1,12 +1,15 @@
 package net.lenni0451.optconfig.provider.impl;
 
-import net.lenni0451.optconfig.provider.ConfigProvider;
+import lombok.SneakyThrows;
+import net.lenni0451.optconfig.provider.WatchableConfigProvider;
+import net.lenni0451.optconfig.watch.ConfigWatcher;
+import net.lenni0451.optconfig.watch.PathConfigWatcher;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class PathConfigProvider implements ConfigProvider {
+public class PathConfigProvider implements WatchableConfigProvider {
 
     private final Path path;
     private final Path tempPath;
@@ -34,6 +37,12 @@ public class PathConfigProvider implements ConfigProvider {
     @Override
     public boolean exists() {
         return Files.exists(this.path);
+    }
+
+    @Override
+    @SneakyThrows
+    public ConfigWatcher watch(final ConfigWatcher.ChangeListener changeListener, final ConfigWatcher.ErrorHandler errorHandler) {
+        return new PathConfigWatcher(this.path, changeListener, errorHandler);
     }
 
 }
